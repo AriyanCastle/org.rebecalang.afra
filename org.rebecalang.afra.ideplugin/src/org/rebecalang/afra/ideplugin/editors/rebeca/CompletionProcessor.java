@@ -1,7 +1,7 @@
 package org.rebecalang.afra.ideplugin.editors.rebeca;
 
 
-/*import java.io.BufferedWriter;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
@@ -21,14 +21,50 @@ import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.swt.graphics.Image;
-import org.rebecalang.ide.afra.compiler.CompilerFeature;
-import org.rebecalang.ide.afra.compiler.ExceptionContainer;
-import org.rebecalang.ide.afra.compiler.RebecaCompiler;
-import org.rebecalang.ide.afra.compiler.rebecaobjectmodel.RebecaModel;
+//import org.rebecalang.ide.afra.compiler.CompilerFeature;
+//import org.rebecalang.ide.afra.compiler.ExceptionContainer;
+//import org.rebecalang.ide.afra.compiler.RebecaCompiler;
+//import org.rebecalang.ide.afra.compiler.rebecaobjectmodel.RebecaModel;
 
 
 public class CompletionProcessor implements IContentAssistProcessor {
-   
+
+	@Override
+	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public char[] getCompletionProposalAutoActivationCharacters() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public char[] getContextInformationAutoActivationCharacters() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getErrorMessage() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IContextInformationValidator getContextInformationValidator() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+/*  
 	private int numberClass;
 	private int numberMsg;
 	private boolean lastFlag = false;
@@ -648,5 +684,5 @@ public class CompletionProcessor implements IContentAssistProcessor {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
-}*/
+*/
+}

@@ -62,15 +62,15 @@
       <plugin id="org.eclipse.core.expressions"/>
       <plugin id="org.eclipse.core.filebuffers"/>
       <plugin id="org.eclipse.core.filesystem"/>
-      <plugin id="org.eclipse.core.filesystem.linux.x86" fragment="true"/>
+      <!-- <plugin id="org.eclipse.core.filesystem.linux.x86" fragment="true"/> -->
       <plugin id="org.eclipse.core.filesystem.linux.x86_64" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.macosx" fragment="true"/>
-      <plugin id="org.eclipse.core.filesystem.win32.x86" fragment="true"/>
+      <!-- <plugin id="org.eclipse.core.filesystem.win32.x86" fragment="true"/> -->
       <plugin id="org.eclipse.core.filesystem.win32.x86_64" fragment="true"/>
       <plugin id="org.eclipse.core.jobs"/>
       <plugin id="org.eclipse.core.net"/>
       <plugin id="org.eclipse.core.resources"/>
-      <plugin id="org.eclipse.core.resources.win32.x86" fragment="true"/>
+      <!-- <plugin id="org.eclipse.core.resources.win32.x86" fragment="true"/> -->
       <plugin id="org.eclipse.core.runtime"/>
       <plugin id="org.eclipse.core.variables"/>
       <plugin id="org.eclipse.draw2d"/>
@@ -145,9 +145,9 @@
       <plugin id="org.eclipse.osgi.util"/>
       <plugin id="org.eclipse.swt"/>
       <plugin id="org.eclipse.swt.cocoa.macosx.x86_64" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.x86" fragment="true"/>
+      <!-- <plugin id="org.eclipse.swt.gtk.linux.x86" fragment="true"/> -->
       <plugin id="org.eclipse.swt.gtk.linux.x86_64" fragment="true"/>
-      <plugin id="org.eclipse.swt.win32.win32.x86" fragment="true"/>
+      <!-- <plugin id="org.eclipse.swt.win32.win32.x86" fragment="true"/> -->
       <plugin id="org.eclipse.swt.win32.win32.x86_64" fragment="true"/>
       <plugin id="org.eclipse.team.core"/>
       <plugin id="org.eclipse.team.ui"/>
@@ -176,6 +176,8 @@
       <plugin id="org.w3c.dom.events"/>
       <plugin id="org.w3c.dom.smil"/>
       <plugin id="org.w3c.dom.svg"/>
+<!--       <plugin id="org.eclipse.equinox.p2.iu"/>
+      <plugin id="org.apache.batik.util.gui"/> -->
    </plugins>
 
    <features>

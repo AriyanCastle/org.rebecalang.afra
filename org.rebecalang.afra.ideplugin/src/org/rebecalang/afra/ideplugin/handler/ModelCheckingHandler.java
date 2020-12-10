@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.rebecalang.afra.ideplugin.preference.CoreRebecaProjectPropertyPage;
+import org.rebecalang.afra.ideplugin.preference.AbstractRebecaProjectPropertyPage;
 import org.rebecalang.afra.ideplugin.propertypages.PropertySelectionDialog;
 import org.rebecalang.afra.ideplugin.view.AnalysisResultView;
 import org.rebecalang.afra.ideplugin.view.CounterExampleGraphView;
@@ -99,7 +100,7 @@ public class ModelCheckingHandler extends AbstractAnalysisHandler {
 					return;
 			}
 			String definedProperties = activeFile.getProject().getPersistentProperty(new QualifiedName("definedProperties", activeFile.getName()));
-			
+			String projectType = AbstractRebecaProjectPropertyPage.getProjectType(activeFile.getProject());
 			String[] properiesNameList = definedProperties.isEmpty() ? new String[0] : definedProperties.split(";");
 
 			PropertySelectionDialog dialog = new PropertySelectionDialog(shell, properiesNameList);
@@ -107,18 +108,27 @@ public class ModelCheckingHandler extends AbstractAnalysisHandler {
 			if (dialog.open() == TitleAreaDialog.OK) {
 				String selectedPropertyName = dialog.getSelectedPropertyName();
 				String[] params;
+				int paramSize = 5;
+				if (selectedPropertyName != null)
+					paramSize += 2;
+				if (projectType.equals("CoreRebeca"))
+					paramSize += 2;
+				params = new String[paramSize];
+				if (projectType.equals("CoreRebeca")) {
+					params[--paramSize] = "" + CoreRebecaProjectPropertyPage.getProjectMaxDepth(activeFile.getProject());
+					params[--paramSize] = "-d";
+				}
 				if (selectedPropertyName != null) {
-					params = new String[7];
-					params[5] = "-p";
-					params[6] = selectedPropertyName;
-				} else {
-					params = new String[5];
+					params[--paramSize] = selectedPropertyName;
+					params[--paramSize] = "-p";
 				}
 				params[0] = outputFolder + executableFileName;
 				params[1] = "-o";
 				params[2] = "output.xml";
 				params[3] = "-g";
 				params[4] = "progress";
+				for(String part : params)
+					System.out.println(part);
 				final String finalOutputFolder = outputFolder;
 				final IFile finalActiveFile = activeFile;
 				try {
