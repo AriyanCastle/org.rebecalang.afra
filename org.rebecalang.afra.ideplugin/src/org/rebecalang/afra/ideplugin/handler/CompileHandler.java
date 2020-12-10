@@ -216,8 +216,8 @@ public class CompileHandler extends AbstractAnalysisHandler {
 				return name.toLowerCase().endsWith(".o");
 			}
 		});
-		boolean unix = isUnix(System.getProperty("os.name"));
-		String command[] = new String[files.length + (unix ? 5 : 4)];
+		
+		String command[] = new String[files.length + (isWindows() ? 4 : 5)];
 
 		command[0] = "g++";
 		for (int i = 0; i < files.length; i++)
@@ -225,7 +225,7 @@ public class CompileHandler extends AbstractAnalysisHandler {
 		command[files.length + 1] = "-w";
 		command[files.length + 2] = "-o";
 		command[files.length + 3] = "execute";
-		if (unix)
+		if (!isWindows())
 			command[files.length + 4] = "-pthread";
 		return command;
 	}

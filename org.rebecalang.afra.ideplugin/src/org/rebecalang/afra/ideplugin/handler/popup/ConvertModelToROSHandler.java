@@ -16,7 +16,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.rebecalang.afra.ideplugin.preference.CoreRebecaProjectPropertyPage;
 import org.rebecalang.compiler.utils.CompilerFeature;
 import org.rebecalang.compiler.utils.ExceptionContainer;
-import org.rebecalang.modeltransformer.TransformingFeature;
 import org.rebecalang.modeltransformer.ros.Rebeca2ROSModelTransformer;
 
 public class ConvertModelToROSHandler extends AbstractPopupOnProjectExplorerHandler {
@@ -47,7 +46,7 @@ public class ConvertModelToROSHandler extends AbstractPopupOnProjectExplorerHand
 		}
 		Rebeca2ROSModelTransformer.getInstance().transformModel(
 				selectedFile.getRawLocation().toFile(), resultFolder, compilerFeatures, 
-				new HashSet<TransformingFeature>(), null);
+				null);
 		ExceptionContainer container = Rebeca2ROSModelTransformer.getInstance().getExceptionContainer();
 		if (!container.getExceptions().isEmpty()) {
 			MessageDialog.openInformation(shell, "Transformation Report",

@@ -122,7 +122,7 @@ public class AbstractRebecaProjectPropertyPage extends PropertyPage implements I
 		new Label(runtimeconfig, SWT.NONE);
 		
 		exportStateSpace = new Button(runtimeconfig, SWT.CHECK);
-		exportStateSpace.setText("Exprt State Space");
+		exportStateSpace.setText("Export State Space");
 		exportStateSpace.setSelection(getProjectExportStateSpace(getProject()));
 
 		return container;

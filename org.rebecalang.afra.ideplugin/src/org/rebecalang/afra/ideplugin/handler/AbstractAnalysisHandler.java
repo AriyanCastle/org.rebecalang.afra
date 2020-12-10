@@ -2,6 +2,7 @@ package org.rebecalang.afra.ideplugin.handler;
 
 import java.io.File;
 
+import org.apache.commons.lang.SystemUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -59,8 +60,12 @@ public class AbstractAnalysisHandler {
 		return false;
 	}
 
-	public boolean isUnix(String OS) {
-		return (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0 );
+//	public static boolean isUnix(String OS) {
+//		return (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0 );
+//	}
+	
+	public static boolean isWindows() {
+		return SystemUtils.IS_OS_WINDOWS;
 	}
 	
 	public enum CompilationStatus {
