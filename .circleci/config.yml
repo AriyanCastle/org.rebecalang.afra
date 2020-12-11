@@ -3,7 +3,7 @@ jobs: # a collection of steps
   build_products: # runs not using Workflows must have a `build` job as entry point
 
     docker: # run the steps with Docker
-      - image: circleci/openjdk:8-jdk # ...with this image as the primary container; this is where all `steps` will run
+      - image: codeaches/openjdk:12-jdk # ...with this image as the primary container; this is where all `steps` will run
 
 
     working_directory: ~/afra # directory where steps will run
@@ -41,7 +41,7 @@ jobs: # a collection of steps
           key: afra
 
       - persist_to_workspace: 
-          root: /home/circleci
+          root: ~/
           paths:
             - afra/org.rebecalang.afra.repository/target/products/
 
@@ -53,12 +53,12 @@ jobs: # a collection of steps
 
     steps: # a collection of executable commands
       - attach_workspace:
-          at: /home/circleci
+          at: ~/
       - run: go get github.com/aktau/github-release
       - run: github-release upload --replace --user $CIRCLE_PROJECT_USERNAME --repo $CIRCLE_PROJECT_REPONAME --tag CircleCIRelease --file "org.rebecalang.afra.repository/target/products/org.rebecalang.afra.ideplugins-win32.win32.x86_64.zip" --name Afra-win32.win32.x86_64.zip
-      - run: github-release upload --replace --user $CIRCLE_PROJECT_USERNAME --repo $CIRCLE_PROJECT_REPONAME --tag CircleCIRelease --file "org.rebecalang.afra.repository/target/products/org.rebecalang.afra.ideplugins-win32.win32.x86.zip" --name Afra-win32.win32.x86.zip
+      # - run: github-release upload --replace --user $CIRCLE_PROJECT_USERNAME --repo $CIRCLE_PROJECT_REPONAME --tag CircleCIRelease --file "org.rebecalang.afra.repository/target/products/org.rebecalang.afra.ideplugins-win32.win32.x86.zip" --name Afra-win32.win32.x86.zip
       - run: github-release upload --replace --user $CIRCLE_PROJECT_USERNAME --repo $CIRCLE_PROJECT_REPONAME --tag CircleCIRelease --file "org.rebecalang.afra.repository/target/products/org.rebecalang.afra.ideplugins-linux.gtk.x86_64.tar.gz" --name Afra-linux.gtk.x86_64.tar.gz
-      - run: github-release upload --replace --user $CIRCLE_PROJECT_USERNAME --repo $CIRCLE_PROJECT_REPONAME --tag CircleCIRelease --file "org.rebecalang.afra.repository/target/products/org.rebecalang.afra.ideplugins-linux.gtk.x86.tar.gz" --name Afra-linux.gtk.x86.tar.gz
+      # - run: github-release upload --replace --user $CIRCLE_PROJECT_USERNAME --repo $CIRCLE_PROJECT_REPONAME --tag CircleCIRelease --file "org.rebecalang.afra.repository/target/products/org.rebecalang.afra.ideplugins-linux.gtk.x86.tar.gz" --name Afra-linux.gtk.x86.tar.gz
       - run: github-release upload --replace --user $CIRCLE_PROJECT_USERNAME --repo $CIRCLE_PROJECT_REPONAME --tag CircleCIRelease --file "org.rebecalang.afra.repository/target/products/org.rebecalang.afra.ideplugins-macosx.cocoa.x86_64.tar.gz" --name Afra-macosx.cocoa.x86_64.tar.gz
 
 workflows:
