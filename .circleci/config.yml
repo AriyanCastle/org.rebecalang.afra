@@ -33,7 +33,7 @@ jobs: # a collection of steps
       - run: mvn -f org.rebecalang.afra.dependencies/pom.xml clean install
       - run: rm -f -r org.rebecalang.afra.dependencies
 
-      - run: mvn clean package # run the actual tests
+      - run: mvn package # run the actual tests
 
       - save_cache: # saves the project dependencies
           paths:
