@@ -24,16 +24,8 @@ Contributors:
       <layout>p2</layout>
       <url>http://download.eclipse.org/releases/oxygen</url>
    </repository>
-</repositories>
-  <pluginRepositories>
-  <pluginRepository>
-    <id>tycho-snapshots</id>
-    <url>https://repo.eclipse.org/content/repositories/tycho-snapshots/</url>
-    <snapshots>
-      <enabled>true</enabled>
-    </snapshots>
-  </pluginRepository>
-  </pluginRepositories>
+	</repositories>
+
 
 	<properties>
 		<tycho-version>2.1.0</tycho-version>
