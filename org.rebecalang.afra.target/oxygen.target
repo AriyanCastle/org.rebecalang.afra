@@ -13,7 +13,7 @@
             <unit id="org.eclipse.nebula.widgets.nattable.extension.poi.feature.feature.group" version="1.5.0.201703192131"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="http://download.eclipse.org/releases/2019-06/201904191000"/>
+            <repository location="http://download.eclipse.org/releases/2019-09"/>
             <unit id="org.eclipse.equinox.sdk.feature.group" version="0.0.0"/>
             <unit id="org.eclipse.platform.sdk" version="0.0.0"/>
             <unit id="org.eclipse.wst.common_core.feature.feature.group" version="0.0.0"/>

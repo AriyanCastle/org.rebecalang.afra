@@ -22,7 +22,7 @@ Contributors:
    	<repository>
       <id>eclipse-oxygen</id>
       <layout>p2</layout>
-      <url>http://download.eclipse.org/releases/oxygen</url>
+      <url>http://download.eclipse.org/releases/2020-09</url>
    </repository>
 	</repositories>
 
@@ -58,7 +58,7 @@ Contributors:
 					<target>
 						<artifact>
 							<groupId>org.rebecalang.afra</groupId>
-							<artifactId>oxygen</artifactId>
+							<artifactId>org.rebecalang.afra.target</artifactId>
 							<version>3.0.0-SNAPSHOT</version>
 						</artifact>
 					</target>
