@@ -5,12 +5,19 @@ import org.eclipse.jface.text.rules.Token;
 import org.rebecalang.afra.ideplugin.editors.ColorManager;
 import org.rebecalang.afra.ideplugin.editors.GeneralSourceViewerConfiguration;
 import org.rebecalang.afra.ideplugin.editors.GeneralTextAttribute;
+import org.eclipse.jface.text.reconciler.IReconciler;
+import org.eclipse.jface.text.reconciler.MonoReconciler;
+import org.eclipse.jface.text.source.ISourceViewer;
+
 
 
 public class RebecaPropSourceViewerConfiguration extends GeneralSourceViewerConfiguration {
 
-	public RebecaPropSourceViewerConfiguration(ColorManager colorManager) {
+	private RebecaPropEditor editor;
+
+	public RebecaPropSourceViewerConfiguration(ColorManager colorManager, RebecaPropEditor editor) {
 		super(colorManager);
+		this.editor = editor;
 	}
 
 	@Override
@@ -38,5 +45,15 @@ public class RebecaPropSourceViewerConfiguration extends GeneralSourceViewerConf
 		}
 		return scanner;
 	}
+
+	public IReconciler getReconciler(ISourceViewer sourceViewer)
+    {
+        RebecaPropReconcilingStrategy strategy = new RebecaPropReconcilingStrategy();
+        strategy.setEditor(this.editor);
+        
+        MonoReconciler reconciler = new MonoReconciler(strategy,false);
+        
+        return reconciler;
+    }
 	
 }

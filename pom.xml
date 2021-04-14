@@ -22,7 +22,7 @@ Contributors:
    	<repository>
       <id>eclipse-oxygen</id>
       <layout>p2</layout>
-      <url>http://download.eclipse.org/releases/2020-09</url>
+      <url>http://download.eclipse.org/releases/2021-03</url>
    </repository>
 	</repositories>
 
@@ -30,8 +30,8 @@ Contributors:
 	<properties>
 		<tycho-version>2.1.0</tycho-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	    <maven.compiler.source>12</maven.compiler.source>
-	    <maven.compiler.target>12</maven.compiler.target>
+	    <maven.compiler.source>14</maven.compiler.source>
+	    <maven.compiler.target>14</maven.compiler.target>
 	</properties>
  
 

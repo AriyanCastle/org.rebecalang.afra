@@ -2,7 +2,6 @@ package org.rebecalang.afra.ideplugin.editors.rebeca;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
@@ -33,7 +32,7 @@ public class RebecaEditor extends TextEditor {
 		colorManager = new ColorManager();
 		RebecaTextAttribute.init();
 		setDocumentProvider(new RebecaDocumentProvider());
-		setSourceViewerConfiguration(new RebecaSourceViewerConfiguration(colorManager));
+		setSourceViewerConfiguration(new RebecaSourceViewerConfiguration(colorManager, this));
 	}
 
 	public IDocument getDocument() {

@@ -131,16 +131,16 @@ public class Activator extends AbstractUIPlugin {
 		ArrayList<String> result = new ArrayList<String>();
 		try {
 			File tempFile = File.createTempFile("AfraTestGPP", ".cpp");
-			RandomAccessFile rad = new RandomAccessFile(tempFile, "rw");
-			rad.writeBytes(sampleCode);
-			rad.close();
+			RandomAccessFile raf = new RandomAccessFile(tempFile, "rw");
+			raf.writeBytes(sampleCode);
+			raf.close();
 
 			ArrayList<String> commandItems = new ArrayList<String>();
 			commandItems.add("g++");
-			commandItems.add(tempFile.getName());
+			commandItems.add(tempFile.getAbsolutePath());
 			commandItems.add("-std=c++11");
 			commandItems.add("-o");
-			commandItems.add("execute");
+			commandItems.add(tempFile.getParent() + "/execute");
 			commandItems.add("-w");
 			if (!AbstractAnalysisHandler.isWindows())
 				commandItems.add("-pthread");
@@ -152,9 +152,10 @@ public class Activator extends AbstractUIPlugin {
 			result.addAll(readExecutionResultStream(p.getInputStream()));
 
 			if (result.isEmpty()) {
-				String executableFileName = 
+				String executableFileName = tempFile.getParent();
+				executableFileName = 
 						AbstractAnalysisHandler.isWindows() ? 
-								"execute.exe" : "./execute";
+								executableFileName + "\\execute.exe" : (executableFileName + "/execute");
 				p = Runtime.getRuntime().exec(executableFileName, null, tempFile.getParentFile());
 				p.waitFor();
 				result.addAll(readExecutionResultStream(p.getErrorStream()));

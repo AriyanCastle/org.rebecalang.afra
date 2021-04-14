@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -31,6 +32,7 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.ui.texteditor.MarkerUtilities;
 import org.rebecalang.afra.ideplugin.preference.CoreRebecaProjectPropertyPage;
 import org.rebecalang.afra.ideplugin.preference.TimedRebecaProjectPropertyPage;
 import org.rebecalang.compiler.propertycompiler.PropertyCodeCompilationException;
@@ -287,17 +289,27 @@ public class CompileHandler extends AbstractAnalysisHandler {
 		if (propertyFile != null)
 			propertyFileResource = project.getWorkspace().getRoot()
 					.getFileForLocation(new Path(propertyFile.getAbsolutePath()));
+		
 		for (Exception e : GenerateFiles.getInstance().getExceptionContainer().getWarnings()) {
 			if (e instanceof CodeCompilationException) {
 				CodeCompilationException cce = (CodeCompilationException) e;
+				IMarker marker;
 				if (cce instanceof PropertyCodeCompilationException)
-					createMarker(propertyFileResource, cce, true);
+					marker = createMarker(propertyFileResource, cce, true);
 				else
-					createMarker(rebecaFile, cce, true);
+					marker = createMarker(rebecaFile, cce, true);
+				HashMap<String, Object> markers = new HashMap<String, Object>();
+//				markers.put(IMarker.SEVERITY, marker.setAttribute(IMarker.SEVERITY, isWarning ? IMarker.SEVERITY_WARNING : IMarker.SEVERITY_ERROR);
+				MarkerUtilities.setMessage(markers, cce.getMessage());
+				MarkerUtilities.setLineNumber(markers, cce.getLine());
+
+				MarkerUtilities.createMarker(rebecaFile, markers, "org.eclipse.ui.views.ProblemView");
 			} else {
 				e.printStackTrace();
 			}
+			
 		}
+		
 		List<Exception> exceptions = new ArrayList<Exception>();
 		exceptions.addAll(GenerateFiles.getInstance().getExceptionContainer().getExceptions());
 		Collections.sort(exceptions, new Comparator<Exception>() {
