@@ -34,7 +34,7 @@ jobs:
 
     - uses: actions/checkout@v2
       with:
-        repository: rebeca-lang/org.rebecalang.org.rebecalang.modeltransformer
+        repository: rebeca-lang/org.rebecalang.modeltransformer
         path: modeltransformer
     - name: Build Model Transformer
       run: mvn install --file modeltransformer/pom.xml
