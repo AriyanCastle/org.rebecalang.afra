@@ -68,6 +68,6 @@ jobs:
       with:
         artifacts: "./org.rebecalang.afra.repository/target/products/Afra*.*"
         token: ${{ secrets.GITHUB_TOKEN }}
-        tag: Afra 3.0
+        tag: Afra-3.0
         allowUpdates: true
     
