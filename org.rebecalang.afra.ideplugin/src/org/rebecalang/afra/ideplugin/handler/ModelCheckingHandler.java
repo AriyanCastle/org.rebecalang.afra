@@ -251,10 +251,11 @@ public class ModelCheckingHandler extends AbstractAnalysisHandler {
 				
 				if (CoreRebecaProjectPropertyPage.getProjectExportStateSpace(project)) {
 					monitor.beginTask("Export State Space File", IProgressMonitor.UNKNOWN);
-					File stateSpaceFile = new File(project.getFullPath() + File.separator + "src" + File.separator
+					File stateSpaceFile = new File(project.getRawLocation() + File.separator + "src" + File.separator
 							+ outputFolder.getName() + ".statespace");
 					IOUtils.copyLarge(new FileInputStream(outputFolder + File.separator + "statespace.xml"), 
 							new FileOutputStream(stateSpaceFile));
+					
 					project.refreshLocal(IResource.DEPTH_INFINITE, null);
 				}
 				showResult(outputFolder);
