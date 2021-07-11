@@ -50,8 +50,8 @@ jobs:
       with:
         repository: rebeca-lang/org.rebecalang.afra.dependencies
         path: dependencies
-    - run: ls -R
     - run: cp -r ./rmc/repo ./dependencies
+    - run: ls -R ./dependencies
     - name: Build Afra Dependencies
       run: mvn install --file dependencies/pom.xml
 
