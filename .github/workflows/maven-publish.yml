@@ -32,12 +32,12 @@ jobs:
     - name: Build RMC
       run: mvn install --file rmc/pom.xml
 
-    - uses: actions/checkout@v2
-      with:
-        repository: rebeca-lang/org.rebecalang.modeltransformer
-        path: modeltransformer
-    - name: Build Model Transformer
-      run: mvn install --file modeltransformer/pom.xml
+    #- uses: actions/checkout@v2
+    #  with:
+    #    repository: rebeca-lang/org.rebecalang.modeltransformer
+    #    path: modeltransformer
+    #- name: Build Model Transformer
+    #  run: mvn install --file modeltransformer/pom.xml
 
     - uses: actions/checkout@v2
       with:
