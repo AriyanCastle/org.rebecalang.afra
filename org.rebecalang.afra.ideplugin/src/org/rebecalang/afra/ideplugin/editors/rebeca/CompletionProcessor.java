@@ -1,38 +1,60 @@
 package org.rebecalang.afra.ideplugin.editors.rebeca;
 
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Set;
 
-
-
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.contentassist.*;
-import org.eclipse.swt.graphics.Image;
-import org.rebecalang.compiler.utils.*;
-import org.rebecalang.compiler.modelcompiler.*;
-import org.rebecalang.compiler.utils.TypesUtilities;
-
-import edu.emory.mathcs.backport.java.util.Collections;
-
-import org.rebecalang.compiler.modelcompiler.corerebeca.objectmodel.*;
+import org.eclipse.jface.text.contentassist.CompletionProposal;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
+import org.eclipse.jface.text.contentassist.IContextInformation;
+import org.eclipse.jface.text.contentassist.IContextInformationValidator;
+import org.rebecalang.afra.ideplugin.handler.CompilationAndCodeGenerationProcess;
+import org.rebecalang.afra.ideplugin.preference.CoreRebecaProjectPropertyPage;
+import org.rebecalang.compiler.CompilerConfig;
+import org.rebecalang.compiler.modelcompiler.RebecaModelCompiler;
+import org.rebecalang.compiler.modelcompiler.SymbolTable;
+import org.rebecalang.compiler.modelcompiler.corerebeca.objectmodel.FieldDeclaration;
+import org.rebecalang.compiler.modelcompiler.corerebeca.objectmodel.MainRebecDefinition;
+import org.rebecalang.compiler.modelcompiler.corerebeca.objectmodel.MethodDeclaration;
+import org.rebecalang.compiler.modelcompiler.corerebeca.objectmodel.ReactiveClassDeclaration;
+import org.rebecalang.compiler.modelcompiler.corerebeca.objectmodel.RebecaModel;
+import org.rebecalang.compiler.modelcompiler.corerebeca.objectmodel.Type;
+import org.rebecalang.compiler.modelcompiler.corerebeca.objectmodel.VariableDeclarator;
+import org.rebecalang.compiler.utils.CompilerExtension;
+import org.rebecalang.compiler.utils.CoreVersion;
 import org.rebecalang.compiler.utils.Pair;
-
+import org.rebecalang.rmc.RMCConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 
 public class CompletionProcessor implements IContentAssistProcessor {
    
-	private int numberClass;
-	private int numberMsg;
+	@Autowired
+	RebecaModelCompiler modelCompiler;
+	
 	private RebecaEditor editor;
-	private boolean lastFlag = false;
 	private static String[] keywords = {"reactiveclass", "knownrebecs", "statevars", "msgsrv"};
 	private static String[] types = {"boolean", "byte", "int", "short"};
 	
 	public CompletionProcessor(RebecaEditor editor) {
 		this.editor = editor;
+		@SuppressWarnings("resource")
+		ApplicationContext context = new AnnotationConfigApplicationContext(RMCConfig.class, CompilerConfig.class);
+		AutowireCapableBeanFactory factory = context.getAutowireCapableBeanFactory();
+		factory.autowireBean(this);
 	}
 
 	private int getWordStartIndex(IDocument document, int offset) throws BadLocationException {
@@ -75,17 +97,23 @@ public class CompletionProcessor implements IContentAssistProcessor {
 	   
 		try {
 			IDocument document = viewer.getDocument();
-			RebecaCompiler compiler = new RebecaCompiler();
-			File rebecaFile = File.createTempFile("a.rebeca", "a.rebeca");
-			FileWriter fstream = new FileWriter(rebecaFile);
-			BufferedWriter out = new BufferedWriter(fstream);
-			out.write(document.get());
-			out.close();
-			Set<CompilerFeature> options = new HashSet<CompilerFeature>();
-			options.add(CompilerFeature.CORE_2_0);
-			Pair<RebecaModel, SymbolTable> pair = compiler.compileRebecaFile(rebecaFile, options, false);
-			RebecaModel rebecaModel = pair.getFirst();
-			SymbolTable symbolTable = pair.getSecond();
+			File tempRebecaFile = File.createTempFile("AfraTempFile", "model.rebeca");
+			FileWriter fstream = new FileWriter(tempRebecaFile);
+			BufferedWriter tempRebecaFileWriter = new BufferedWriter(fstream);
+			tempRebecaFileWriter.write(document.get());
+			tempRebecaFileWriter.close();
+
+			IProject project = CompilationAndCodeGenerationProcess.getProject();
+			Set<CompilerExtension> compationExtensions = 
+					CompilationAndCodeGenerationProcess.retrieveCompationExtension(project);
+			
+			CoreVersion version = CoreRebecaProjectPropertyPage.getProjectLanguageVersion(project);
+			
+			Pair<RebecaModel,SymbolTable> compilationResult = 
+					modelCompiler.compileRebecaFile(tempRebecaFile, compationExtensions, version);
+			
+			RebecaModel rebecaModel = compilationResult.getFirst();
+			SymbolTable symbolTable = compilationResult.getSecond();
 			int lineNumber = document.getLineOfOffset(offset);			
 			ArrayList<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 

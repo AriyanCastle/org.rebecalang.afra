@@ -10,7 +10,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
-import org.rebecalang.compiler.utils.CompilerFeature;
+import org.rebecalang.compiler.utils.CoreVersion;
 
 public class NewProjectWizardPageTwo extends WizardPage {
 	private Text text1;
@@ -25,7 +25,7 @@ public class NewProjectWizardPageTwo extends WizardPage {
 	private static final String VERSION_2 = "2.1\t\t\t\t\t";
 	private static final String VERSION_3 = "2.3\t\t\t\t\t";
 
-	CompilerFeature languageVersion;
+	CoreVersion languageVersion;
 	String projectExtention;
 	protected boolean runInSafeMode;
 	protected boolean exportStateSpace;
@@ -49,7 +49,7 @@ public class NewProjectWizardPageTwo extends WizardPage {
 		setDescription("Set Your New Project Type And Version");
 		setControl(text1);
 		runInSafeMode = true;
-		languageVersion = CompilerFeature.CORE_2_1;
+		languageVersion = CoreVersion.CORE_2_1;
 		projectExtention = "CoreRebeca";
 	}
 
@@ -131,7 +131,7 @@ public class NewProjectWizardPageTwo extends WizardPage {
 			}
 
 			public void widgetDefaultSelected(SelectionEvent e) {
-				languageVersion = CompilerFeature.CORE_2_0;
+				languageVersion = CoreVersion.CORE_2_0;
 			}
 		});
 
@@ -144,7 +144,7 @@ public class NewProjectWizardPageTwo extends WizardPage {
 			}
 
 			public void widgetDefaultSelected(SelectionEvent e) {
-				languageVersion = CompilerFeature.CORE_2_1;
+				languageVersion = CoreVersion.CORE_2_1;
 			}
 		});
 
@@ -156,7 +156,7 @@ public class NewProjectWizardPageTwo extends WizardPage {
 			}
 
 			public void widgetDefaultSelected(SelectionEvent e) {
-				languageVersion = CompilerFeature.CORE_2_3;
+				languageVersion = CoreVersion.CORE_2_3;
 			}
 		});
 
@@ -222,7 +222,7 @@ public class NewProjectWizardPageTwo extends WizardPage {
 		return projectExtention;
 	}
 
-	public CompilerFeature getVersion() {
+	public CoreVersion getVersion() {
 		return languageVersion;
 	}
 	

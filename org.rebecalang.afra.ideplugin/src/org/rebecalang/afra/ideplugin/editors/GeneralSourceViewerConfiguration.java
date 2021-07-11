@@ -5,6 +5,8 @@ import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
+import org.eclipse.jface.text.source.DefaultAnnotationHover;
+import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 
@@ -13,20 +15,17 @@ public abstract class GeneralSourceViewerConfiguration extends SourceViewerConfi
 	protected ColorManager colorManager;
 	protected RuleBasedScanner scanner;
 
-	public GeneralSourceViewerConfiguration(ColorManager colorManager)
-	{
+	public GeneralSourceViewerConfiguration(ColorManager colorManager) {
 		this.colorManager = colorManager;
 	}
 
-	public ColorManager getColorManager()
-	{
+	public ColorManager getColorManager() {
 		return colorManager;
 	}
 
 	public abstract String[] getContentTypes();
 	
-	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer)
-	{
+	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
 		String[] types = getContentTypes();
 		String[] ret = new String[types.length+1];
 		ret[0] = IDocument.DEFAULT_CONTENT_TYPE; 
@@ -69,4 +68,10 @@ public abstract class GeneralSourceViewerConfiguration extends SourceViewerConfi
 		reconciler.setDamager(ndr, partition);
 		reconciler.setRepairer(ndr, partition);
 	}
+	
+	@Override
+	public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
+        return new DefaultAnnotationHover();
+    }
+
 }

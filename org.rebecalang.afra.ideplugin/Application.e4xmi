@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<application:Application xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:advanced="http://www.eclipse.org/ui/2010/UIModel/application/ui/advanced" xmlns:application="http://www.eclipse.org/ui/2010/UIModel/application" xmlns:basic="http://www.eclipse.org/ui/2010/UIModel/application/ui/basic" xmlns:menu="http://www.eclipse.org/ui/2010/UIModel/application/ui/menu" xmlns:ui="http://www.eclipse.org/ui/2010/UIModel/application/ui" xmi:id="_VnmacNSzEeGBn6dQ9VPexA" elementId="org.rebecalang.ide.afra.application" bindingContexts="_VnmacdSzEeGBn6dQ9VPexA">
+<application:Application xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:advanced="http://www.eclipse.org/ui/2010/UIModel/application/ui/advanced" xmlns:application="http://www.eclipse.org/ui/2010/UIModel/application" xmlns:basic="http://www.eclipse.org/ui/2010/UIModel/application/ui/basic" xmlns:menu="http://www.eclipse.org/ui/2010/UIModel/application/ui/menu" xmi:id="_VnmacNSzEeGBn6dQ9VPexA" elementId="org.rebecalang.ide.afra.application" bindingContexts="_VnmacdSzEeGBn6dQ9VPexA">
   <children xsi:type="basic:TrimmedWindow" xmi:id="_Vnmah9SzEeGBn6dQ9VPexA" label="My Main Window" iconURI="platform:/plugin/org.rebecalang.afra.ideplugin/icons/logo.png" x="400" y="400">
     <children xsi:type="advanced:PerspectiveStack" xmi:id="_Vnmaj9SzEeGBn6dQ9VPexA">
       <children xsi:type="advanced:Perspective" xmi:id="_jM0GoPqFEea7gt_Qq78G6Q" elementId="org.rebecalang.afra.ideplugin.perspective" selectedElement="_nRrDMPqFEea7gt_Qq78G6Q" label="My Perspective" iconURI="platform:/plugin/org.rebecalang.afra.ideplugin/icons/logo.png">
@@ -16,7 +16,7 @@
             <children xsi:type="basic:PartStack" xmi:id="_nRrDNfqFEea7gt_Qq78G6Q" elementId="org.eclipse.ui.views.PropertySheetMStack" containerData="3400" selectedElement="_nRrDN_qFEea7gt_Qq78G6Q">
               <tags>newtablook</tags>
               <tags>org.eclipse.e4.secondaryDataStack</tags>
-              <children xsi:type="advanced:Placeholder" xmi:id="_nRrDNvqFEea7gt_Qq78G6Q" elementId="org.rebecalang.afra.ideplugin.placeholder.problems" ref="_uqZs4EbrEeuNbLX9TeX8lQ"/>
+              <children xsi:type="advanced:Placeholder" xmi:id="_nRrDNvqFEea7gt_Qq78G6Q" elementId="org.rebecalang.afra.ideplugin.placeholder.problems" ref="_zuj2cOAOEeuktJPJudwmew"/>
               <children xsi:type="advanced:Placeholder" xmi:id="_nRrDN_qFEea7gt_Qq78G6Q" elementId="org.rebecalang.afra.ideplugin.placeholder.analysisresult" ref="_WqRGcNS1EeGBn6dQ9VPexA"/>
               <children xsi:type="advanced:Placeholder" xmi:id="_nRrDOPqFEea7gt_Qq78G6Q" elementId="org.rebecalang.afra.ideplugin.placeholder.console" ref="_LoTcYPYEEeaaz6i3UWiK7g"/>
             </children>
@@ -189,68 +189,7 @@
     <sharedElements xsi:type="basic:Part" xmi:id="_z86DUPeeEeaaz6i3UWiK7g" elementId="org.eclipse.search.internal.ui.SearchResultView" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityView" label="Search" iconURI="platform:/plugin/org.eclipse.ui.ide/icons/full/etool16/search_src.png"/>
     <sharedElements xsi:type="basic:Part" xmi:id="_DN-x8APaEeeKO5X4TFBPmw" elementId="org.rebecalang.afra.ideplugin.view.CounterExampleGraphView" contributionURI="bundleclass://org.rebecalang.afra.ideplugin/org.rebecalang.afra.ideplugin.view.CounterExampleGraphView" label="Coutner Example Graph" iconURI="platform:/plugin/org.rebecalang.afra.ideplugin/icons/counterexample.png"/>
     <sharedElements xsi:type="basic:Part" xmi:id="_rNaj4AWlEeeKO5X4TFBPmw" elementId="org.rebecalang.afra.ideplugin.view.StateInCounterExampleView" contributionURI="bundleclass://org.rebecalang.afra.ideplugin/org.rebecalang.afra.ideplugin.view.StateInCounterExampleView" label="State in Counter Example" iconURI="platform:/plugin/org.rebecalang.afra.ideplugin/icons/counterexample.png"/>
-    <sharedElements xsi:type="basic:Part" xmi:id="_uqZs4EbrEeuNbLX9TeX8lQ" elementId="org.eclipse.ui.views.ProblemView" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityView" label="Problems" iconURI="platform:/plugin/org.eclipse.ui.ide/icons/full/eview16/problems_view.png" tooltip="" closeable="true">
-      <persistedState key="originalCompatibilityViewClass" value="org.eclipse.ui.internal.views.markers.ProblemsView"/>
-      <persistedState key="originalCompatibilityViewBundle" value="org.eclipse.ui.ide"/>
-      <persistedState key="memento" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>&#xA;&lt;view PRIMARY_SORT_FIELD=&quot;org.eclipse.ui.ide.severityAndDescriptionField&quot; categoryGroup=&quot;org.eclipse.ui.ide.severity&quot; markerContentGenerator=&quot;org.eclipse.ui.ide.problemsGenerator&quot; partName=&quot;Problems&quot;>&#xA;&lt;expanded>&#xA;&lt;category IMemento.internal.id=&quot;Warnings (100 of 518 items)&quot;/>&#xA;&lt;/expanded>&#xA;&lt;columnWidths org.eclipse.ui.ide.locationField=&quot;90&quot; org.eclipse.ui.ide.markerType=&quot;90&quot; org.eclipse.ui.ide.pathField=&quot;120&quot; org.eclipse.ui.ide.resourceField=&quot;141&quot; org.eclipse.ui.ide.severityAndDescriptionField=&quot;300&quot;/>&#xA;&lt;visible IMemento.internal.id=&quot;org.eclipse.ui.ide.severityAndDescriptionField&quot;/>&#xA;&lt;visible IMemento.internal.id=&quot;org.eclipse.ui.ide.resourceField&quot;/>&#xA;&lt;visible IMemento.internal.id=&quot;org.eclipse.ui.ide.pathField&quot;/>&#xA;&lt;visible IMemento.internal.id=&quot;org.eclipse.ui.ide.locationField&quot;/>&#xA;&lt;visible IMemento.internal.id=&quot;org.eclipse.ui.ide.markerType&quot;/>&#xA;&lt;/view>"/>
-      <tags>View</tags>
-      <tags>categoryTag:General</tags>
-      <menus xmi:id="_uqZs4UbrEeuNbLX9TeX8lQ" elementId="org.eclipse.ui.views.ProblemView">
-        <tags>ViewMenu</tags>
-        <tags>menuContribution:menu</tags>
-        <children xsi:type="menu:Menu" xmi:id="_uqZs4kbrEeuNbLX9TeX8lQ" elementId="org.eclipse.ui.ide.problems.filtersMenu" visible="false" label="&amp;Show">
-          <persistedState key="persistState" value="false"/>
-          <tags>menuContribution:menu</tags>
-          <visibleWhen xsi:type="ui:CoreExpression" xmi:id="_uqZs40brEeuNbLX9TeX8lQ" coreExpressionId="programmatic.value"/>
-          <children xsi:type="menu:DirectMenuItem" xmi:id="_uqZs5EbrEeuNbLX9TeX8lQ" elementId="org.eclipse.ui.ide.filtersContribution">
-            <tags>Rendered</tags>
-          </children>
-        </children>
-        <children xsi:type="menu:Menu" xmi:id="_uqZs5UbrEeuNbLX9TeX8lQ" elementId="problemsGroupByMenu" label="&amp;Group By">
-          <persistedState key="persistState" value="false"/>
-          <tags>menuContribution:menu</tags>
-          <children xsi:type="menu:DirectMenuItem" xmi:id="_uqZs5kbrEeuNbLX9TeX8lQ" elementId="org.eclipse.ui.ide.dynamic1">
-            <tags>Rendered</tags>
-          </children>
-        </children>
-        <children xsi:type="menu:Menu" xmi:id="_uqZs50brEeuNbLX9TeX8lQ" elementId="org.eclipse.ui.ide.problems.markerSortMenu" label="&amp;Sort By">
-          <persistedState key="persistState" value="false"/>
-          <tags>menuContribution:menu</tags>
-          <children xsi:type="menu:DirectMenuItem" xmi:id="_uqZs6EbrEeuNbLX9TeX8lQ" elementId="org.eclipse.ui.ide.problems.sortEntries">
-            <tags>Rendered</tags>
-          </children>
-        </children>
-        <children xsi:type="menu:HandledMenuItem" xmi:id="_uqZs6UbrEeuNbLX9TeX8lQ" elementId="org.eclipse.ui.ide.OpenMarkersView" label="New Problems View" mnemonics="V">
-          <persistedState key="persistState" value="false"/>
-          <persistedState key="IIdentifier" value="org.eclipse.ui.ide/org.eclipse.ui.ide.OpenMarkersView"/>
-          <command href="file:/Users/ekhamespanah/Desktop/Academics/Rebeca/workspace2020-2/.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi#_tmHTbDt8EeuMjfK8goAk_w"/>
-        </children>
-        <children xsi:type="menu:HandledMenuItem" xmi:id="_uqZs6kbrEeuNbLX9TeX8lQ" elementId="org.eclipse.ui.ide.configureFilters" iconURI="platform:/plugin/org.eclipse.ui.ide/icons/full/elcl16/filter_ps.png" mnemonics="C">
-          <persistedState key="persistState" value="false"/>
-          <persistedState key="IIdentifier" value="org.eclipse.ui.ide/org.eclipse.ui.ide.configureFilters"/>
-          <command href="file:/Users/ekhamespanah/Desktop/Academics/Rebeca/workspace2020-2/.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi#_tmKXizt8EeuMjfK8goAk_w"/>
-        </children>
-        <children xsi:type="menu:HandledMenuItem" xmi:id="_uqZs60brEeuNbLX9TeX8lQ" elementId="org.eclipse.ui.ide.configureColumns" mnemonics="l">
-          <persistedState key="persistState" value="false"/>
-          <persistedState key="IIdentifier" value="org.eclipse.ui.ide/org.eclipse.ui.ide.configureColumns"/>
-          <command href="file:/Users/ekhamespanah/Desktop/Academics/Rebeca/workspace2020-2/.metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi#_tmKX5jt8EeuMjfK8goAk_w"/>
-        </children>
-      </menus>
-      <menus xsi:type="menu:PopupMenu" xmi:id="_uqZs7EbrEeuNbLX9TeX8lQ" elementId="org.eclipse.ui.views.ProblemView">
-        <persistedState key="persistState" value="false"/>
-        <tags>menuContribution:popup</tags>
-        <tags>popup:org.eclipse.ui.views.ProblemView</tags>
-        <tags>popup:org.eclipse.ui.ide.MarkersView</tags>
-      </menus>
-      <toolbar xmi:id="_uqZs7UbrEeuNbLX9TeX8lQ" elementId="org.eclipse.ui.views.ProblemView" visible="false">
-        <children xsi:type="menu:DirectToolItem" xmi:id="_uqZs7kbrEeuNbLX9TeX8lQ" elementId="FilterGroup">
-          <tags>Opaque</tags>
-        </children>
-        <children xsi:type="menu:DirectToolItem" xmi:id="_uqZs70brEeuNbLX9TeX8lQ">
-          <tags>Opaque</tags>
-        </children>
-      </toolbar>
-    </sharedElements>
+    <sharedElements xsi:type="basic:Part" xmi:id="_zuj2cOAOEeuktJPJudwmew" elementId="org.eclipse.ui.views.ProblemView" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityView" label="Problems" iconURI="platform:/plugin/org.eclipse.ui.ide/icons/full/eview16/problems_view.png"/>
     <trimBars xmi:id="_VOV6ANTAEeGTY-uOtVc6Mg" elementId="org.eclipse.ui.main.toolbar">
       <children xsi:type="menu:ToolBar" xmi:id="_JqRrMMjcEeiqAa2kCBB0Qw" elementId="org.rebecalang.afra.ideplugin.toolbar.0">
         <children xsi:type="menu:HandledToolItem" xmi:id="_L1VNgMjcEeiqAa2kCBB0Qw" elementId="org.rebecalang.afra.ideplugin.handledtoolitem.new" label="New" iconURI="platform:/plugin/org.eclipse.ui/icons/full/etool16/new_wiz.png" command="_7mxqMN3iEeigKd7AdtrYlw"/>
@@ -304,19 +243,7 @@
     <children xmi:id="_VnmactSzEeGBn6dQ9VPexA" elementId="org.eclipse.ui.contexts.window" name="In Windows"/>
     <children xmi:id="_Vnmac9SzEeGBn6dQ9VPexA" elementId="org.eclipse.ui.contexts.dialog" name="In Dialogs"/>
   </rootContext>
-  <descriptors xmi:id="_6HxkkEbqEeuNbLX9TeX8lQ" elementId="org.eclipse.ui.views.ProblemView" label="Problems" iconURI="platform:/plugin/org.eclipse.ui.ide/icons/full/eview16/problems_view.png" tooltip="" allowMultiple="true" category="General" closeable="true" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityView">
-    <persistedState key="originalCompatibilityViewClass" value="org.eclipse.ui.internal.views.markers.ProblemsView"/>
-    <persistedState key="originalCompatibilityViewBundle" value="org.eclipse.ui.ide"/>
-    <tags>View</tags>
-    <tags>categoryTag:General</tags>
-  </descriptors>
-  <descriptors xmi:id="_5MbWoEbqEeuNbLX9TeX8lQ" elementId="org.eclipse.ui.views.AllMarkersView" label="Markers" iconURI="platform:/plugin/org.eclipse.ui.ide/icons/full/eview16/problems_view.png" tooltip="" allowMultiple="true" category="General" closeable="true" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityView">
-    <persistedState key="originalCompatibilityViewClass" value="org.eclipse.ui.internal.views.markers.AllMarkersView"/>
-    <persistedState key="originalCompatibilityViewBundle" value="org.eclipse.ui.ide"/>
-    <tags>View</tags>
-    <tags>categoryTag:General</tags>
-  </descriptors>
-  <descriptors xmi:id="_9E9jYNS4EeGBn6dQ9VPexA" elementId="org.eclipse.ui.navigator.ProjectExplorer" label="Project Explorer" iconURI="platform:/plugin/org.eclipse.ui.navigator.resources//icons/full/eview16/resource_persp.gif" category="org.eclipse.e4.primaryNavigationStack" closeable="true" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityView">
+  <descriptors xmi:id="_9E9jYNS4EeGBn6dQ9VPexA" elementId="org.eclipse.ui.navigator.ProjectExplorer" label="Project Explorer" iconURI="platform:/plugin/org.eclipse.ui.ide.application/icons/full/eview16/resource_persp.png" category="org.eclipse.e4.primaryNavigationStack" closeable="true" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityView">
     <tags>View</tags>
     <tags>categoryTag:General</tags>
   </descriptors>
@@ -332,11 +259,10 @@
     <tags>View</tags>
     <tags>categoryTag:General</tags>
   </descriptors>
-  <descriptors xmi:id="_ClMEcPNDEeaPzoR2QQVKQA" elementId="org.eclipse.ui.console.ConsoleView" label="Console" iconURI="platform:/plugin/org.eclipse.ui.console/icons/full/cview16/console_view.gif" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityView"/>
-  <descriptors xmi:id="_9oragPedEeaaz6i3UWiK7g" elementId="org.eclipse.ui.views.ProblemView" label="Problems" iconURI="platform:/plugin/org.eclipse.ui.ide//icons/full/eview16/problems_view.png" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityView"/>
   <descriptors xmi:id="_vZqhoPeeEeaaz6i3UWiK7g" elementId="org.eclipse.search.internal.ui.SearchResultView" label="Search" iconURI="platform:/plugin/org.eclipse.ui.ide/icons/full/etool16/search_src.png" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityView"/>
   <descriptors xmi:id="_4vpx4APZEeeKO5X4TFBPmw" elementId="org.rebecalang.afra.ideplugin.view.CounterExampleGraphView" label="Counter Example Graph" iconURI="platform:/plugin/org.rebecalang.afra.ideplugin/icons/counterexample.png" contributionURI="bundleclass://org.rebecalang.afra.ideplugin/org.rebecalang.afra.ideplugin.view.CounterExampleGraphView"/>
   <descriptors xmi:id="_hv8j4AWlEeeKO5X4TFBPmw" elementId="org.rebecalang.afra.ideplugin.view.StateInCounterExampleView" label="State in Counter Example" iconURI="platform:/plugin/org.rebecalang.afra.ideplugin/icons/counterexample.png" contributionURI="bundleclass://org.rebecalang.afra.ideplugin/org.rebecalang.afra.ideplugin.view.StateInCounterExampleView"/>
+  <descriptors xmi:id="_Ld35gOAREeuktJPJudwmew" elementId="org.eclipse.ui.views.ProblemView" label="Problems" iconURI="platform:/plugin/org.eclipse.ui.ide/icons/full/eview16/problems_view.png" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityView"/>
   <menuContributions xmi:id="_ZX_UgMjMEeigoNKkiQ9rZw" elementId="org.eclipse.e4.tools.spy.menucontribution.0" contributorURI="platform:/plugin/org.eclipse.e4.tools.spy" positionInParent="after=additions" parentId="org.eclipse.ui.navigator.ProjectExplorer#PopupMenu">
     <children xsi:type="menu:Menu" xmi:id="_ZX_UgcjMEeigoNKkiQ9rZw" elementId="convertArtifacts" contributorURI="platform:/plugin/org.eclipse.e4.tools.spy" label="convert">
       <children xsi:type="menu:DirectMenuItem" xmi:id="_zAHiANqjEeit7Jg7cPcHYQ" elementId="org.rebecalang.afra.ideplugin.directmenuitem.dothething" label="ConvertToGraphviz" contributionURI="bundleclass://org.rebecalang.afra.ideplugin/org.rebecalang.afra.ideplugin.handler.popup.ConvertStateSpaceToGraphvizHandler"/>

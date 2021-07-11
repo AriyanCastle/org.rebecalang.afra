@@ -28,7 +28,7 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
         IWorkbenchWindowConfigurer configurer = getWindowConfigurer();
         configurer.setShowCoolBar(true);
         configurer.setShowStatusLine(true);
-        configurer.setTitle("Rebeca IDE"); //$NON-NLS-1$
+        configurer.setTitle("Rebeca IDE");
         getWindowConfigurer().getWindow().getShell().setMaximized(true);
     }
     

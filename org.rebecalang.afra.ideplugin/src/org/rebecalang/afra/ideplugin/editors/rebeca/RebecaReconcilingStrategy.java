@@ -14,7 +14,7 @@ import org.eclipse.swt.widgets.Display;
 public class RebecaReconcilingStrategy implements IReconcilingStrategy, IReconcilingStrategyExtension {
     private RebecaEditor editor;
     private IDocument fDocument;
-    protected final ArrayList fPositions = new ArrayList();
+    protected final ArrayList<Position> fPositions = new ArrayList<Position>();
     protected int fRangeEnd;
 
     public RebecaEditor getEditor() {
@@ -69,7 +69,7 @@ public class RebecaReconcilingStrategy implements IReconcilingStrategy, IReconci
         for(int pos = 0; pos < fRangeEnd; pos += 1) {
             char ch = fDocument.getChar(pos);
             if(ch == '{') {
-                openPositions.add(new Integer(pos));
+                openPositions.add(pos);
             }
             else if(ch == '}') {
                 if(openPositions.size() > 0) {

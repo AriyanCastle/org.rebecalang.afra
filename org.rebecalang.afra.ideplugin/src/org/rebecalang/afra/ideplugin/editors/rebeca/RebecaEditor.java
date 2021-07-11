@@ -2,6 +2,7 @@ package org.rebecalang.afra.ideplugin.editors.rebeca;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
@@ -65,6 +66,13 @@ public class RebecaEditor extends TextEditor {
 		viewer.doOperation(ProjectionViewer.TOGGLE);
 		
 		annotationModel = viewer.getProjectionAnnotationModel();
+		
+//		Iterator<Annotation> annotationIterator = annotationModel.getAnnotationIterator();
+//		while(annotationIterator.hasNext()) {
+//			Annotation a = annotationIterator.next();
+//			String text = a.getText();
+//			System.out.println(text);
+//		}
 		
     }
 	private Annotation[] oldAnnotations;

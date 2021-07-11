@@ -3,6 +3,8 @@
 	<name>org.rebecalang.afra.ideplugin</name>
 	<comment></comment>
 	<projects>
+		<project>org.rebecalang.compiler</project>
+		<project>org.rebecalang.rmc</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

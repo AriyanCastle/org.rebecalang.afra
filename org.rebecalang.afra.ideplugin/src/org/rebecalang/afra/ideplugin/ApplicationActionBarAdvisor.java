@@ -82,8 +82,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
         }
         this.isDisposed = true;
         IMenuService menuService = (IMenuService) this.window.getService(IMenuService.class);
-        menuService.releaseContributions(this.coolbarPopupMenuManager);
-        this.coolbarPopupMenuManager.dispose();
+//        menuService.releaseContributions(this.coolbarPopupMenuManager);
+//        this.coolbarPopupMenuManager.dispose();
         getActionBarConfigurer().getStatusLineManager().remove(this.statusLineItem);
         super.dispose();
     }

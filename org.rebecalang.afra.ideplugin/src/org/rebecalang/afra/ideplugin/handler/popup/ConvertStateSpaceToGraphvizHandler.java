@@ -10,7 +10,7 @@ import org.eclipse.e4.core.di.annotations.CanExecute;
 import org.eclipse.e4.core.di.annotations.Execute;
 import org.eclipse.e4.ui.model.application.ui.basic.MPart;
 import org.eclipse.swt.widgets.Shell;
-import org.rebecalang.afra.ideplugin.handler.AbstractAnalysisHandler;
+import org.rebecalang.afra.ideplugin.handler.CompilationAndCodeGenerationProcess;
 import org.rebecalang.afra.ideplugin.preference.CoreRebecaProjectPropertyPage;
 import org.rebecalang.statespacetransformer.StateSpaceTransformer;
 import org.rebecalang.statespacetransformer.StateSpaceTransformingFeature;
@@ -28,7 +28,7 @@ public class ConvertStateSpaceToGraphvizHandler extends AbstractPopupOnProjectEx
 	public void execute(Shell shell) {
 		IFile selectedFile = (IFile)getSelectedItem();
 		IProject project = selectedFile.getProject();
-		File graphvizFile = AbstractAnalysisHandler.getFileFromByReplacingExtension(selectedFile, "dot");
+		File graphvizFile = CompilationAndCodeGenerationProcess.getFileFromByReplacingExtension(selectedFile, "dot");
 		String[] args = {
 				"--extension",
 				CoreRebecaProjectPropertyPage.getProjectType(project),

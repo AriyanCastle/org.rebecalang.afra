@@ -22,7 +22,7 @@ import org.rebecalang.afra.ideplugin.nature.SampleBuilder;
 import org.rebecalang.afra.ideplugin.nature.TimedRebecaNature;
 import org.rebecalang.afra.ideplugin.preference.CoreRebecaProjectPropertyPage;
 import org.rebecalang.afra.ideplugin.preference.TimedRebecaProjectPropertyPage;
-import org.rebecalang.compiler.utils.CompilerFeature;
+import org.rebecalang.compiler.utils.CoreVersion;
 
 public class RebecaProjectSupport {
 	/**
@@ -36,7 +36,7 @@ public class RebecaProjectSupport {
 	 * @throws CoreException
 	 */
 	public static IProject createProject(String projectName, URI location, String type,
-			CompilerFeature version, boolean runInSafeMode, boolean exportStateSpace, boolean createSampleProjects) {
+			CoreVersion version, boolean runInSafeMode, boolean exportStateSpace, boolean createSampleProjects) {
 		Assert.isNotNull(projectName);
 		Assert.isTrue(projectName.trim().length() > 0);
 
@@ -153,7 +153,7 @@ public class RebecaProjectSupport {
 		}
 	}
 
-	private static void addNatures(IProject project, String type, CompilerFeature version) throws CoreException {
+	private static void addNatures(IProject project, String type, CoreVersion version) throws CoreException {
 
 		if (!project.hasNature(RebecaNature.NATURE_ID)) {
 			IProjectDescription description = project.getDescription();

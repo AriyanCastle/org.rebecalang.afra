@@ -17,7 +17,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPropertyPage;
 import org.eclipse.ui.dialogs.PropertyPage;
 import org.osgi.service.prefs.BackingStoreException;
-import org.rebecalang.compiler.utils.CompilerFeature;
+import org.rebecalang.compiler.utils.CoreVersion;
 
 
 public class AbstractRebecaProjectPropertyPage extends PropertyPage implements IWorkbenchPropertyPage {
@@ -79,11 +79,11 @@ public class AbstractRebecaProjectPropertyPage extends PropertyPage implements I
 		return getProjectAttribute(project, "projectType", "CoreRebeca");
 	}
 	
-	public static void setProjectLanguageVersion(IProject project, CompilerFeature value) {
+	public static void setProjectLanguageVersion(IProject project, CoreVersion value) {
 		setProjectAttribute(project, "languageVersion", value.toString());
 	}
-	public static CompilerFeature getProjectLanguageVersion(IProject project) {
-		return CompilerFeature.valueOf(getProjectAttribute(project, "languageVersion", CompilerFeature.CORE_2_1.toString()));
+	public static CoreVersion getProjectLanguageVersion(IProject project) {
+		return CoreVersion.valueOf(getProjectAttribute(project, "languageVersion", CoreVersion.CORE_2_1.toString()));
 	}
 	
 	

@@ -14,12 +14,12 @@ import org.eclipse.swt.widgets.Shell;
 
 public class PropertySelectionDialog extends TitleAreaDialog {
 
-	String[] propertiesNames;
+	java.util.List<String> propertiesNames;
 	private int selectedIndex = 0;
 	
-	public PropertySelectionDialog(Shell parentShell, String[] propertiesNames) {
+	public PropertySelectionDialog(Shell parentShell, java.util.List<String> properiesNames) {
 		super(parentShell);
-		this.propertiesNames = propertiesNames;
+		this.propertiesNames = properiesNames;
 	}
 
 	@Override
@@ -73,6 +73,6 @@ public class PropertySelectionDialog extends TitleAreaDialog {
 	public String getSelectedPropertyName() {
 		if (selectedIndex == 0)
 			return null;
-		return propertiesNames[selectedIndex - 1];
+		return propertiesNames.get(selectedIndex - 1);
 	}
 }
