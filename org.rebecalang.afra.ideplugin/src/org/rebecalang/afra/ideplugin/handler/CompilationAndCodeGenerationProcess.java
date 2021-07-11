@@ -386,22 +386,24 @@ public class CompilationAndCodeGenerationProcess {
 
 			private void associateMarkersWithFile(IFile file, Set<Exception> exceptions, Set<Exception> warnings) {
 
-				for(Exception exception : exceptions) {
-					if (exception instanceof CodeCompilationException) {
-						CodeCompilationException cce = (CodeCompilationException) exception;
-						createErrorMarker(file, cce);
-					} else {
-						exception.printStackTrace();
-					}					
-				}
-				for(Exception warning : warnings) {
-					if (warning instanceof CodeCompilationException) {
-						CodeCompilationException cce = (CodeCompilationException) warning;
-						createWarningMarker(file, cce);
-					} else {
-						warning.printStackTrace();
-					}					
-				}
+				if(exceptions != null)
+					for(Exception exception : exceptions) {
+						if (exception instanceof CodeCompilationException) {
+							CodeCompilationException cce = (CodeCompilationException) exception;
+							createErrorMarker(file, cce);
+						} else {
+							exception.printStackTrace();
+						}					
+					}
+				if(warnings != null)
+					for(Exception warning : warnings) {
+						if (warning instanceof CodeCompilationException) {
+							CodeCompilationException cce = (CodeCompilationException) warning;
+							createWarningMarker(file, cce);
+						} else {
+							warning.printStackTrace();
+						}					
+					}
 			}
 
 			private String[] generateLinkerCommands(File outputFolder) {
