@@ -3,6 +3,7 @@
 
 <product name="Afra" uid="org.rebecalang.afra.ideplugins" id="org.rebecalang.afra.ideplugin.product" application="org.rebecalang.afra.ideplugin.application" version="1.0.0.qualifier" useFeatures="false" includeLaunchers="true">
 
+
    <configIni use="default">
    </configIni>
 
@@ -41,8 +42,10 @@
       </win>
    </launcher>
 
+
    <vm>
    </vm>
+
 
    <plugins>
       <plugin id="com.ibm.icu"/>

@@ -1,18 +1,15 @@
 package org.rebecalang.afra.ideplugin;
 
-import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.action.StatusLineContributionItem;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
-import org.eclipse.ui.menus.IMenuService;
 
 public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
-	private boolean isDisposed;
-    private IWorkbenchWindow window;
-    private MenuManager coolbarPopupMenuManager;
-    private StatusLineContributionItem statusLineItem;
+//	private boolean isDisposed;
+//    private IWorkbenchWindow window;
+//    private MenuManager coolbarPopupMenuManager;
+//    private StatusLineContributionItem statusLineItem;
     
 //    private IWorkbenchAction fileNewAction;
 //    private IWorkbenchAction fileCloseAction;
@@ -70,21 +67,21 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     public ApplicationActionBarAdvisor(IActionBarConfigurer configurer)
     {
         super(configurer);
-        this.window = configurer.getWindowConfigurer().getWindow();
+//        this.window = configurer.getWindowConfigurer().getWindow();
     }
 
     @Override
     public void dispose()
     {
-        if (this.isDisposed)
-        {
-            return;
-        }
-        this.isDisposed = true;
-        IMenuService menuService = (IMenuService) this.window.getService(IMenuService.class);
+//        if (this.isDisposed)
+//        {
+//            return;
+//        }
+//        this.isDisposed = true;
+//        IMenuService menuService = (IMenuService) this.window.getService(IMenuService.class);
 //        menuService.releaseContributions(this.coolbarPopupMenuManager);
 //        this.coolbarPopupMenuManager.dispose();
-        getActionBarConfigurer().getStatusLineManager().remove(this.statusLineItem);
+//        getActionBarConfigurer().getStatusLineManager().remove(this.statusLineItem);
         super.dispose();
     }
 

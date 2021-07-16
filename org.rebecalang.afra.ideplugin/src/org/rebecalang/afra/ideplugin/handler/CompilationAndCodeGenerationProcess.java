@@ -193,33 +193,6 @@ public class CompilationAndCodeGenerationProcess {
 		return file.getProject();
 	}
 	
-	private static IMarker createErrorMarker(IResource file, CodeCompilationException cce) {
-		return createMarker(file, cce, IMarker.SEVERITY_ERROR);
-	}
-	
-	private static IMarker createWarningMarker(IResource file, CodeCompilationException cce) {
-		return createMarker(file, cce, IMarker.SEVERITY_WARNING);
-	}
-	
-	private static IMarker createMarker(IResource file, CodeCompilationException cce, int severity) {
-		try {
-			IMarker marker = file.createMarker(IMarker.PROBLEM);
-			marker.setAttribute(IMarker.SEVERITY, severity);
-			marker.setAttribute(IMarker.MESSAGE, cce.getMessage());
-			marker.setAttribute(IMarker.LINE_NUMBER, cce.getLine());
-//			
-//			HashMap<String, Object> markers = new HashMap<String, Object>();
-//			MarkerUtilities.setMessage(markers, cce.getMessage());
-//			MarkerUtilities.setLineNumber(markers, cce.getLine());
-//
-//			MarkerUtilities.createMarker(file, markers, IMarker.PROBLEM);
-			return marker;
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
 	public static Set<CompilerExtension> retrieveCompationExtension (IProject project) {
 		Set<CompilerExtension> returnValue = new HashSet<CompilerExtension>();
 		String languageType = CoreRebecaProjectPropertyPage.getProjectType(project);
@@ -250,6 +223,27 @@ public class CompilationAndCodeGenerationProcess {
 		protected void cancelPressed() {
 			super.cancelPressed();
 			codeGenerationCanceledByUser = true;
+		}
+
+		private IMarker createErrorMarker(IResource file, CodeCompilationException cce) {
+			return createMarker(file, cce, IMarker.SEVERITY_ERROR);
+		}
+		
+		private IMarker createWarningMarker(IResource file, CodeCompilationException cce) {
+			return createMarker(file, cce, IMarker.SEVERITY_WARNING);
+		}
+		
+		private IMarker createMarker(IResource file, CodeCompilationException cce, int severity) {
+			try {
+				IMarker marker = file.createMarker(IMarker.PROBLEM);
+				marker.setAttribute(IMarker.SEVERITY, severity);
+				marker.setAttribute(IMarker.MESSAGE, cce.getMessage());
+				marker.setAttribute(IMarker.LINE_NUMBER, cce.getLine());
+				return marker;
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
+			return null;
 		}
 
 		private class CompilationRunner implements IRunnableWithProgress {
@@ -346,8 +340,10 @@ public class CompilationAndCodeGenerationProcess {
 
 			private void deleteMarkersFromFiles() throws CoreException {
 				rebecaFile.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
+				rebecaFile.createMarker(IMarker.BOOKMARK); //To enforce persisting the effect of deleting markers
 				if (propertyFile.exists()) {
 					propertyFile.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
+					propertyFile.createMarker(IMarker.BOOKMARK); //To enforce persisting the effect of deleting markers
 				}
 			}
 
@@ -378,7 +374,6 @@ public class CompilationAndCodeGenerationProcess {
 							associateMarkersWithFile(propertyFile, 
 									exceptionContainer.getExceptions().get(propertyFile.getRawLocation().toFile()),
 									exceptionContainer.getWarnings().get(propertyFile.getRawLocation().toFile()));
-//					rebecaFile.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
 				}
 				
 				return result;

@@ -12,7 +12,7 @@ import org.eclipse.jface.text.rules.WordRule;
 import org.rebecalang.afra.ideplugin.editors.ColorManager;
 
 public class RebecaPropScanner extends RuleBasedScanner {
-	private static final String[] rebecaPropWords = {"define", "CTL", "LTL", "property"};
+	private static final String[] rebecaPropWords = {"define", "CTL", "LTL", "property", "true", "false", "Assertion"};
 
 	public RebecaPropScanner(ColorManager manager)
 	{

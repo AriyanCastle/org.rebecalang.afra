@@ -3,6 +3,8 @@ package org.rebecalang.afra.ideplugin.propertypages;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
@@ -62,6 +64,21 @@ public class PropertySelectionDialog extends TitleAreaDialog {
 			
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
+		});
+		properties.addMouseListener(new MouseListener() {
+
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				selectedIndex = properties.getSelectionIndex();
+				PropertySelectionDialog.this.okPressed();
+			}
+
+			@Override
+			public void mouseDown(MouseEvent e) { }
+
+			@Override
+			public void mouseUp(MouseEvent e) { }
+			
 		});
 	}
 

@@ -33,14 +33,12 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.internal.Workbench;
 import org.eclipse.ui.internal.WorkbenchPlugin;
 import org.eclipse.ui.internal.ide.ChooseWorkspaceData;
 import org.eclipse.ui.internal.ide.ChooseWorkspaceDialog;
 import org.eclipse.ui.internal.ide.IDEInternalPreferences;
 import org.eclipse.ui.internal.ide.IDEWorkbenchMessages;
 import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
-import org.eclipse.ui.internal.ide.StatusUtil;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Version;
@@ -50,6 +48,7 @@ import org.osgi.framework.Version;
  *
  * @since 3.0
  */
+@SuppressWarnings("restriction")
 public class Application implements IApplication, IExecutableExtension {
 
 	/**
@@ -128,6 +127,8 @@ public class Application implements IApplication, IExecutableExtension {
 			// N.B. createWorkbench remembers the advisor, and also registers
 			// the workbench globally so that all UI plug-ins can find it using
 			// PlatformUI.getWorkbench() or AbstractUIPlugin.getWorkbench()
+			Job.getJobManager().resume();
+
 			int returnCode = PlatformUI.createAndRunWorkbench(display,
 					new ApplicationWorkbenchAdvisor());
 
@@ -174,8 +175,7 @@ public class Application implements IApplication, IExecutableExtension {
 	 * @return <code>null</code> if a valid instance location has been set and an exit code
 	 *         otherwise
 	 */
-	@SuppressWarnings("rawtypes")
-	protected Object checkInstanceLocation(Shell shell, Map applicationArguments) {
+	protected Object checkInstanceLocation(Shell shell, Map<?,?> applicationArguments) {
 		// -data @none was specified but an ide requires workspace
 		Location instanceLoc = Platform.getInstanceLocation();
 		if (instanceLoc == null) {

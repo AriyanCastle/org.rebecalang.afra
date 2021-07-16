@@ -207,10 +207,9 @@
 <extension
          point="org.eclipse.ui.decorators">
       <decorator
-            icon="icons/rebeca.gif"
+            icon="icons/rebeca-file-logo.gif"
             id="org.eclipse.pde.ui.ProjectDecorator"
-            label="%decorator.label"
-            objectClass="org.eclipse.core.resources.IFolder">
+            label="%decorator.label">
       </decorator>
  </extension>
 
@@ -243,20 +242,12 @@
 	      </run>
 	   </runtime>
 	</extension>
-	<extension
+	<!--<extension
 	      point="org.eclipse.ui.ide.projectNatureImages">
 	   <image
-	         icon="icons/rebeca.png"
+	         icon="icons/R-Icon.png"
 	         id="org.rebecalang.afra.ideplugin.nature.RebecaNature.image"
 	         natureId="org.rebecalang.afra.ideplugin.nature.RebecaNature">
-	   </image>
-	</extension>
-
-	<extension point="org.eclipse.ui.ide.markerSupport">
-		<markerContentGenerator 
-			id="org.eclipse.ui.views.ProblemView2"
-      		name="Custom Marker View">
-    		<markerTypeReference id="org.eclipse.core.resources.problemmarker"/>
-		</markerContentGenerator>
-	</extension>
+	   </image> 
+	</extension>-->
 </plugin>
