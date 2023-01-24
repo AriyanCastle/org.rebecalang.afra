@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.ICommand;
@@ -59,13 +60,17 @@ public class RebecaProjectSupport {
 		return project;
 	}
 	
-	@SuppressWarnings("deprecation")
+//	@SuppressWarnings("deprecation")
 	private static void copyFile(IProject project, String fileName) {
-		StringWriter writer = new StringWriter();
+//		StringWriter writer = new StringWriter();
 		try {
-			IOUtils.copy(RebecaProjectSupport.class.getResource("/samples/" + fileName).openStream(), writer);
+//			IOUtils.copy(RebecaProjectSupport.class.getResource("/samples/" + fileName).openStream(), writer);
+		    String fileContent = new String(
+		    		RebecaProjectSupport.class.getResource("/samples/" + fileName).openStream().readAllBytes(), 
+		    		StandardCharsets.UTF_8);
+
 			IFile file = project.getFile("src/" + fileName);
-			createFile(file, writer.toString());
+			createFile(file, fileContent);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (CoreException e) {
