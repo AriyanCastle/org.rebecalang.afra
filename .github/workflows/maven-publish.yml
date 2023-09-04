@@ -12,20 +12,20 @@ jobs:
 
     steps:
     - name: Set up JDK 17
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v3
       with:
         java-version: 17
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
-
-    - uses: actions/checkout@v2
+        distribution: 'temurin'
+    - uses: actions/checkout@v3
       with:
         repository: rebeca-lang/org.rebecalang.compiler
         path: compiler
     - name: Build Compiler
       run: mvn install --file compiler/pom.xml
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         repository: rebeca-lang/org.rebecalang.rmc
         path: rmc
@@ -39,14 +39,14 @@ jobs:
     #- name: Build Model Transformer
     #  run: mvn install --file modeltransformer/pom.xml
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         repository: rebeca-lang/org.rebecalang.statespacetransformer
         path: statespacetransformer
     - name: Build State Space Transformer
       run: mvn install --file statespacetransformer/pom.xml
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         repository: rebeca-lang/org.rebecalang.afra.dependencies
         path: dependencies
@@ -54,7 +54,7 @@ jobs:
     - name: Build Afra Dependencies
       run: mvn install --file dependencies/pom.xml
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Build with Maven
       run: mvn package --file pom.xml
 
