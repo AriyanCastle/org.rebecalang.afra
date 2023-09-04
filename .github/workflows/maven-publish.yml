@@ -23,6 +23,7 @@ jobs:
         repository: rebeca-lang/org.rebecalang.compiler
         path: compiler
     - name: Build Compiler
+      run: mvn --version
       run: mvn install --file compiler/pom.xml
 
     - uses: actions/checkout@v3
