@@ -15,6 +15,8 @@ public class AbstractAnalysisHandler {
 		if (codeEditor == null)
 			return false;
 		IFile activeFile = codeEditor.getEditorInput().getAdapter(IFile.class);
+		if (activeFile.getFileExtension() == null)
+			return false;
 		if (activeFile.getFileExtension().equals("rebeca"))
 			return true;
 

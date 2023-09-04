@@ -8,14 +8,6 @@
 	</extension>
 
    <extension
-         id="eclipse-repository"
-         point="org.eclipse.core.runtime.products">
-      <product
-            application="org.rebecalang.afra.ideplugin.Application"
-            name="Afra Product">
-      </product>
-   </extension>
-   <extension
          id="application"
          point="org.eclipse.core.runtime.applications">
       <application>
@@ -24,9 +16,10 @@
          </run>
       </application>
    </extension>
+   
 
-	<extension id="product" point="org.eclipse.core.runtime.products">
-	  <product application="org.rebecalang.afra.ideplugin.application" name="Afra">
+	<extension id="org.rebecalang.afra.ideplugin.product" point="org.eclipse.core.runtime.products">
+	  <product application="org.rebecalang.afra.ideplugin.Application" name="Afra">
 	    <property name="appName" value="Afra"> </property>
 	    <property name="applicationXMI" value="org.rebecalang.afra.ideplugin/Application.e4xmi"> </property>
 	    <property

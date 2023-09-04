@@ -8,21 +8,20 @@
 	<artifactId>parent</artifactId>
 	<packaging>pom</packaging>
 
-   <repositories>
-   	<repository>
-      <id>eclipse-oxygen</id>
-      <layout>p2</layout>
-      <url>http://download.eclipse.org/releases/2021-03</url>
-   </repository>
-	</repositories>
-
-
 	<properties>
-		<tycho-version>2.1.0</tycho-version>
+		<tycho-version>4.0.2</tycho-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	    <compilerVersion>14</compilerVersion>
+		<compilerVersion>17</compilerVersion>
+      <eclipse-repo.url>https://download.eclipse.org/releases/latest</eclipse-repo.url>
 	</properties>
  
+  <repositories>
+   	<repository>
+      <id>eclipse-release</id>
+      <layout>p2</layout>
+      <url>${eclipse-repo.url}</url>
+   </repository>
+	</repositories>
 
 	<modules>
 		<module>org.rebecalang.afra.ideplugin</module>
@@ -32,13 +31,36 @@
 	</modules>
 
 	<build>
+		<pluginManagement>
+     		<plugins>
+       		<plugin>
+		         <groupId>org.eclipse.tycho</groupId>
+		         <artifactId>tycho-p2-director-plugin</artifactId>
+		         <version>${tycho-version}</version>
+       		</plugin>
+     		</plugins>
+   	</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
-				<artifactId>tycho-compiler-plugin</artifactId>
+				<artifactId>tycho-maven-plugin</artifactId>
 				<version>${tycho-version}</version>
-				
+				<extensions>true</extensions>
 			</plugin>
+			<plugin>
+        		<groupId>org.eclipse.tycho</groupId>
+         	<artifactId>tycho-packaging-plugin</artifactId>
+         	<version>${tycho-version}</version>
+         	<executions>
+           		<execution>
+             		<phase>package</phase>
+             		<id>package-feature</id>
+                 	<configuration>
+                  	<finalName>${project.artifactId}_${unqualifiedVersion}.${buildQualifier}</finalName>
+                 	</configuration>
+         		</execution>
+     			</executions>
+    		</plugin>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>target-platform-configuration</artifactId>
@@ -51,6 +73,16 @@
 							<version>3.0.0-SNAPSHOT</version>
 						</artifact>
 					</target>
+          <dependency-resolution>
+              <extraRequirements>
+                  <requirement>
+                      <type>eclipse-plugin</type>
+                      <id>org.eclipse.equinox.event</id>
+                      <versionRange>0.0.0</versionRange>
+                  </requirement>
+              </extraRequirements>
+          </dependency-resolution>
+          <resolveWithExecutionEnvironmentConstraints>false</resolveWithExecutionEnvironmentConstraints>
 					<environments>
 						<environment>
 							<os>win32</os>
@@ -67,14 +99,13 @@
 							<ws>cocoa</ws>
 							<arch>x86_64</arch>
 						</environment>
+						<environment>
+							<os>macosx</os>
+							<ws>cocoa</ws>
+							<arch>aarch64</arch>
+						</environment>
 					</environments>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.eclipse.tycho</groupId>
-				<artifactId>tycho-maven-plugin</artifactId>
-				<version>${tycho-version}</version>
-				<extensions>true</extensions>
 			</plugin>
 		</plugins>
 	</build>
