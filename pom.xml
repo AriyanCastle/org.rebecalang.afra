@@ -84,7 +84,7 @@
           </dependency-resolution>
           <resolveWithExecutionEnvironmentConstraints>false</resolveWithExecutionEnvironmentConstraints>
 					<environments>
-						<!--<environment>
+						<environment>
 							<os>win32</os>
 							<ws>win32</ws>
 							<arch>x86_64</arch>
@@ -98,7 +98,7 @@
 							<os>macosx</os>
 							<ws>cocoa</ws>
 							<arch>x86_64</arch>
-						</environment>-->
+						</environment>
 						<environment>
 							<os>macosx</os>
 							<ws>cocoa</ws>
