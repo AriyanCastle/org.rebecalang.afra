@@ -1,0 +1,8 @@
+property {
+  define {
+    ScientistIsAlive = !ctrl.sciDead;
+  }
+  Assertion {
+    SafeLab : ScientistIsAlive;
+  }	
+}

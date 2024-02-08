@@ -6,7 +6,6 @@ import java.io.StringReader;
 import java.util.Hashtable;
 
 import javax.annotation.PostConstruct;
-//import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -101,12 +100,149 @@ public class CounterExampleGraphView extends ViewPart {
 		return cess;
 	}
 
+	private Transition extractOneTransitionInfo(String line) throws JAXBException {
+		JAXBContext jaxbContext;
+		jaxbContext = JAXBContext.newInstance(Transition.class.getPackage().getName());
+		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+		return (Transition) unmarshaller.unmarshal(new StringReader(line));
+	}
+
 	public void update(String analysisResultFileName) throws IOException, JAXBException {
 		for (Control control : parent.getChildren()) {
 			control.dispose();
 		}
 
 		Graph graph = new Graph(parent, SWT.NONE);
+		graph.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Graph graph = (Graph) e.getSource();
+				if (graph.getSelection().isEmpty())
+					return;
+				Object object = graph.getSelection().get(0);
+				if (!(object instanceof GraphNode))
+					return;
+				GraphNode node = (GraphNode) object;
+				CounterExampleStateSpecification cess = (CounterExampleStateSpecification) node.getData();
+				try {
+					RandomAccessFile file = new RandomAccessFile(cess.getFileName(), "r");
+					file.seek(cess.getFileDescriptor());
+					StringBuffer stateContent = new StringBuffer();
+					for (int cnt = 0; cnt < cess.getLineNumber(); cnt++) {
+						stateContent.append(file.readLine());
+					}
+					file.close();
+
+					JAXBContext jaxbContext;
+					jaxbContext = JAXBContext.newInstance(State.class.getPackage().getName());
+					Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+					State state = (State) 
+							unmarshaller.unmarshal(new StringReader(stateContent.toString()));
+
+					StateInCounterExampleView view = 
+							(StateInCounterExampleView) ViewUtils.getViewPart(StateInCounterExampleView.class.getName());
+					view.update(state);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				} catch (JAXBException e1) {
+					e1.printStackTrace();
+				}
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);
+			}
+		});
+		Hashtable<String, GraphNode> states = new Hashtable<>();
+		RandomAccessFile analysisResultFile = new RandomAccessFile(analysisResultFileName, "r");
+		
+		while(!analysisResultFile.readLine().trim().equals(COUNTER_EXAMPLE_START_TAG));
+		
+		String line;
+		
+		int nodeY = NODE_START_Y;
+		int numberOfCycles = 0;
+
+		CounterExampleStateSpecification cess = extractOneStateInfo(analysisResultFile, analysisResultFileName);
+		GraphNode newNode = new GraphNode(graph, SWT.NONE, cess);
+		newNode.setLocation(NODE_START_X, nodeY);
+		newNode.setText(cess.getId());
+		states.put(cess.getId(), newNode);		
+		nodeY += STEP_Y;
+		while(true) {
+			line = analysisResultFile.readLine();
+			if (line == null)
+				break;
+			Transition transition = extractOneTransitionInfo(line);
+			String source = transition.getSource();
+			String destination = transition.getDestination();
+
+			if(analysisResultFile.getFilePointer() != analysisResultFile.length()) {
+				cess = extractOneStateInfo(analysisResultFile, analysisResultFileName);
+				if(!states.containsKey(destination)) {
+					newNode = new GraphNode(graph, SWT.NONE, cess);
+					newNode.setLocation(NODE_START_X, nodeY);
+					newNode.setText(cess.getId());
+					states.put(cess.getId(), newNode);			
+					nodeY += STEP_Y;
+				} else {
+					if(!source.equals(destination)) {
+						numberOfCycles++;
+						GraphNode sourceNode = states.get(source);
+						sourceNode.setLocation(
+								NODE_START_X + 100 * numberOfCycles, 
+								sourceNode.getLocation().y());
+					}
+				}
+			}
+			
+			GraphConnection gc = new GraphConnection(graph, ZestStyles.CONNECTIONS_DIRECTED, 
+					states.get(source), states.get(destination));
+			if (source.equals(destination))
+				gc.setCurveDepth(50);
+			String messageText = "";
+			if (transition.getMessageserver() != null) {
+				Messageserver messageserver = transition.getMessageserver();
+				messageText = messageserver.getOwner() + "." + messageserver.getTitle() + " from " +
+						messageserver.getSender();				
+			} else if(transition.getTime() != null) {
+				Time time = transition.getTime();
+				messageText = "Time progress by " + time.getProgressOfTime().toString() + " units";
+			}
+			if (transition.getExecutionTime() != null)
+				messageText += " @(" + transition.getExecutionTime() + ")";
+			gc.setText(messageText);
+			gc.setLineColor(parent.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+			
+			
+//			if (repeatedState) {
+//				Point location = states.get(source).getLocation();
+//				states.get(source).setLocation(location.x() + 100, location.y());
+//				location = states.get(destination).getLocation();
+//				states.get(destination).setLocation(location.x() + 100, location.y());
+//				break;
+//			} else {
+				long backup = analysisResultFile.getFilePointer();
+				if(!(line = analysisResultFile.readLine()).trim().equals(COUNTER_EXAMPLE_END_TAG))
+					analysisResultFile.seek(backup);
+				else
+					break;
+//			}
+		}
+		analysisResultFile.close();
+		parent.layout(true);
+	}
+	
+	public void updateold(String analysisResultFileName) throws IOException, JAXBException {
+		for (Control control : parent.getChildren()) {
+			control.dispose();
+		}
+
+		Graph graph = new Graph(parent, SWT.NONE);
+//		graph.setLayoutAlgorithm(new SpringLayoutAlgorithm(
+//                LayoutStyles.NO_LAYOUT_NODE_RESIZING), true);
 		graph.addSelectionListener(new SelectionListener() {
 			
 			@Override

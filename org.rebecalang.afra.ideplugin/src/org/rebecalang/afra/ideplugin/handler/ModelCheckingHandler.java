@@ -230,7 +230,7 @@ public class ModelCheckingHandler extends AbstractAnalysisHandler {
 							reader.close();
 					  		schedule(2000);
 						} catch (IOException e) {
-							System.out.println("Progress file not found.");
+							e.printStackTrace();
 						}
 				  		return running ? org.eclipse.core.runtime.Status.OK_STATUS :
 				  			org.eclipse.core.runtime.Status.CANCEL_STATUS;

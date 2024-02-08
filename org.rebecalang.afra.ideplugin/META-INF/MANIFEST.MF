@@ -4,7 +4,7 @@ Bundle-Name: org.rebecalang.afra.ideplugin
 Bundle-SymbolicName: org.rebecalang.afra.ideplugin;singleton:=true
 Bundle-Version: 3.0.0.qualifier
 Bundle-Activator: org.rebecalang.afra.ideplugin.Activator
-Require-Bundle: javax.inject,
+Require-Bundle: 
  org.eclipse.core.runtime,
  org.eclipse.e4.ui.model.workbench,
  org.eclipse.jface,

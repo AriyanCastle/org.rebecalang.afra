@@ -1,0 +1,20 @@
+property {
+    define {
+        newLeaderIsElected = (node1.leaderId == 1);
+        TheSameLeaderIds = (node1.leaderId == node2.leaderId) && 
+        					  (node2.leaderId == node3.leaderId) &&
+        					  (node3.leaderId == node4.leaderId);
+        validIdsInNode1 = node1.leaderId == -1 || node1.leaderId == 1;
+        validIdsInNode2 = node2.leaderId == -1 || node2.leaderId == 1;
+        validIdsInNode3 = node3.leaderId == -1 || node3.leaderId == 1;
+        validIdsInNode4 = node4.leaderId == -1 || node4.leaderId == 1;
+    }
+
+    Assertion {
+    	Safety: validIdsInNode1 && validIdsInNode2 && validIdsInNode3 && validIdsInNode4;
+    }
+
+    LTL {
+  		CorrectLeader : G(!newLeaderIsElected || F(TheSameLeaderIds));
+    }
+}

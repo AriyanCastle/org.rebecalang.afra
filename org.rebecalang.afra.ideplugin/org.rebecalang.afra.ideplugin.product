@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="Afra" uid="org.rebecalang.afra.ideplugins" id="org.rebecalang.afra.ideplugin.product" application="org.rebecalang.afra.ideplugin.Application" version="1.0.0.qualifier" useFeatures="false" includeLaunchers="true" autoIncludeRequirements="true">
+<product name="Afra" uid="org.rebecalang.afra.ideplugins" id="org.rebecalang.afra.ideplugin.product" application="org.rebecalang.afra.ideplugin.Application" version="1.0.0.qualifier" type="bundles" includeLaunchers="true" autoIncludeRequirements="true">
+
 
    <configIni use="default">
    </configIni>
@@ -41,8 +42,10 @@
       </win>
    </launcher>
 
+
    <vm>
    </vm>
+
 
    <plugins>
       <plugin id="bcpg"/>
@@ -73,7 +76,7 @@
       <plugin id="org.eclipse.core.expressions"/>
       <plugin id="org.eclipse.core.filebuffers"/>
       <plugin id="org.eclipse.core.filesystem"/>
-      <plugin id="org.eclipse.core.filesystem.macosx" fragment="true"/>
+      <plugin id="org.eclipse.core.filesystem.macosx"/>
       <plugin id="org.eclipse.core.jobs"/>
       <plugin id="org.eclipse.core.net"/>
       <plugin id="org.eclipse.core.resources"/>
@@ -102,7 +105,7 @@
       <plugin id="org.eclipse.e4.ui.workbench"/>
       <plugin id="org.eclipse.e4.ui.workbench.addons.swt"/>
       <plugin id="org.eclipse.e4.ui.workbench.renderers.swt"/>
-      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa" fragment="true"/>
+      <plugin id="org.eclipse.e4.ui.workbench.renderers.swt.cocoa"/>
       <plugin id="org.eclipse.e4.ui.workbench.swt"/>
       <plugin id="org.eclipse.e4.ui.workbench3"/>
       <plugin id="org.eclipse.emf.common"/>
@@ -124,32 +127,33 @@
       <plugin id="org.eclipse.equinox.preferences"/>
       <plugin id="org.eclipse.equinox.registry"/>
       <plugin id="org.eclipse.equinox.security"/>
-      <plugin id="org.eclipse.equinox.security.macosx" fragment="true"/>
+      <plugin id="org.eclipse.equinox.security.macosx"/>
       <plugin id="org.eclipse.equinox.simpleconfigurator"/>
-      <plugin id="org.eclipse.fx.osgi" fragment="true"/>
+      <plugin id="org.eclipse.fx.osgi"/>
       <plugin id="org.eclipse.help"/>
       <plugin id="org.eclipse.jdt.core"/>
       <plugin id="org.eclipse.jface"/>
       <plugin id="org.eclipse.jface.databinding"/>
       <plugin id="org.eclipse.jface.notifications"/>
       <plugin id="org.eclipse.jface.text"/>
+      <plugin id="org.eclipse.justj.openjdk.hotspot.jre.full"/>
       <plugin id="org.eclipse.ltk.core.refactoring"/>
       <plugin id="org.eclipse.ltk.ui.refactoring"/>
       <plugin id="org.eclipse.osgi"/>
-      <plugin id="org.eclipse.osgi.compatibility.state" fragment="true"/>
+      <plugin id="org.eclipse.osgi.compatibility.state"/>
       <plugin id="org.eclipse.osgi.services"/>
       <plugin id="org.eclipse.osgi.util"/>
       <plugin id="org.eclipse.pde.runtime"/>
       <plugin id="org.eclipse.swt"/>
-      <plugin id="org.eclipse.swt.cocoa.macosx.aarch64" fragment="true"/>
-      <plugin id="org.eclipse.swt.cocoa.macosx.aarch64.source" fragment="true"/>
-      <plugin id="org.eclipse.swt.cocoa.macosx.x86_64" fragment="true"/>
-      <plugin id="org.eclipse.swt.cocoa.macosx.x86_64.source" fragment="true"/>
+      <plugin id="org.eclipse.swt.cocoa.macosx.aarch64"/>
+      <plugin id="org.eclipse.swt.cocoa.macosx.aarch64.source"/>
+      <plugin id="org.eclipse.swt.cocoa.macosx.x86_64"/>
+      <plugin id="org.eclipse.swt.cocoa.macosx.x86_64.source"/>
       <plugin id="org.eclipse.team.core"/>
       <plugin id="org.eclipse.team.ui"/>
       <plugin id="org.eclipse.text"/>
       <plugin id="org.eclipse.ui"/>
-      <plugin id="org.eclipse.ui.cocoa" fragment="true"/>
+      <plugin id="org.eclipse.ui.cocoa"/>
       <plugin id="org.eclipse.ui.console"/>
       <plugin id="org.eclipse.ui.editors"/>
       <plugin id="org.eclipse.ui.forms"/>
@@ -185,7 +189,6 @@
       <plugin id="org.w3c.dom.events"/>
       <plugin id="org.w3c.dom.smil"/>
       <plugin id="org.w3c.dom.svg"/>
-      <plugin id="org.eclipse.justj.openjdk.hotspot.jre.full"/>
    </plugins>
 
    <features>

@@ -1,88 +1,64 @@
-
-reactiveclass Philosopher(3)
-{
-	knownrebecs
-	{
-		Fork forkL;
-		Fork forkR;
+reactiveclass Philosopher(3) {
+	knownrebecs {
+		Chopstick chpL, chpR;
 	}
-	statevars
-	{
+	statevars {
 		boolean eating;
-		boolean fL;
-		boolean fR;
+		boolean cL, cR;
 	}
-	Philosopher()
-	{
-		fL = false;
-		fR = false;
+	Philosopher() {
+		cL = false;
+		cR = false;
 		eating = false;
 		self.arrive();
 	}
 
-	msgsrv arrive()
-	{
-		forkL.request();
+	msgsrv arrive() {
+		chpL.request();
 	}
-
-	msgsrv permit()
-	{
-		if (sender == forkL) {
-			if (!fL) {
-				fL = true;
-				forkR.request();
+	msgsrv permit() {
+		if (sender == chpL) {
+			if (!cL) {
+				cL = true;
+				chpR.request();
 			}
-		}
-		else {
-			if (fL && !(fR)) {
-				fR = true;
+		} else {
+			if (cL && !(cR)) {
+				cR = true;
 				self.eat();
 			}
 			/* else discard the message */
 		}
 	}
-
-	msgsrv eat()
-	{
+	msgsrv eat() {
 		eating = true;
 		self.leave();
 	}
-
-	msgsrv leave()
-	{
-		fL = false;
-		fR = false;
+	msgsrv leave() {
+		cL = false;
+		cR = false;
 		eating = false;
-		forkL.release();
-		forkR.release();
+		chpL.release();
+		chpR.release();
 		self.arrive();
 	}
 }
 
-reactiveclass Fork(3)
-{
-	knownrebecs
-	{
-		Philosopher philL;
-		Philosopher philR;
+reactiveclass Chopstick(3) {
+	knownrebecs {
+		Philosopher philL, philR;
 	}
-	statevars
-	{
-		boolean lAssign;	
-		boolean rAssign;	
-		boolean leftReq;
-		boolean rightReq;
+	statevars {
+		boolean lAssign, rAssign, leftReq, rightReq;
 	}
-	Fork()
-	{ 
+	Chopstick() {
 		lAssign = false;
 		rAssign = false;
 		leftReq = false;
 		rightReq = false;
 	}
 
-	msgsrv request()
-	{
+	msgsrv request() {
 		if (sender == philL) {
 			if (!leftReq) {
 				leftReq = true;
@@ -92,8 +68,7 @@ reactiveclass Fork(3)
 				}
 			} 
 			/* else discard message */
-		}
-		else {
+		} else {
 			if (!rightReq) {
 				rightReq = true;
 				if (!lAssign) {
@@ -104,8 +79,7 @@ reactiveclass Fork(3)
 			/* else discard message */
 		}
 	}
-	msgsrv release()
-	{
+	msgsrv release() {
 		if (sender == philL && lAssign){
 			leftReq = false;
 			lAssign = false;
@@ -125,13 +99,12 @@ reactiveclass Fork(3)
 	}
 }
 
-main
-{
-       Philosopher phil0(fork0, fork2):();
-       Philosopher phil1(fork0, fork1):();
-       Philosopher phil2(fork1, fork2):();
+main {
+	Philosopher phil0(chp0, chp2):();
+	Philosopher phil1(chp0, chp1):();
+	Philosopher phil2(chp1, chp2):();
 
-       Fork fork0(phil0, phil1):();
-       Fork fork1(phil1, phil2):();
-       Fork fork2(phil2, phil0):();
+	Chopstick chp0(phil0, phil1):();
+	Chopstick chp1(phil1, phil2):();
+	Chopstick chp2(phil2, phil0):();
 }
