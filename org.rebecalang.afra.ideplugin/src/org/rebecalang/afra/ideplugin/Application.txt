@@ -1,0 +1,23 @@
+APPLICATION.JAVA DOCUMENTATION
+===============================
+
+PURPOSE:
+Main Eclipse application class that handles workspace management, startup, and workbench initialization for the Afra IDE.
+
+ECLIPSE VS AFRA:
+- Eclipse framework class (implements IApplication)
+- Afra-specific workbench configuration and workspace handling
+
+KEY METHODS:
+- start(IApplicationContext): Main application startup, creates workbench and display
+- checkInstanceLocation(): Validates and sets up workspace location
+- checkValidWorkspace(): Verifies workspace compatibility with IDE version
+- createDisplay(): Creates the main SWT display
+- promptForWorkspace(): Shows workspace selection dialog
+
+IMPORTANT NOTES:
+- Manages workspace selection and validation
+- Handles version compatibility between workspace and IDE
+- Creates and configures the main Eclipse workbench
+- Provides workspace locking and error handling
+- Essential for the overall IDE application lifecycle

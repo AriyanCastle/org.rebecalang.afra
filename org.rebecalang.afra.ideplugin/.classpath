@@ -1,25 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
 		<attributes>
-			<attribute name="module" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Applications/Eclipse-2023.app/Contents/Eclipse/plugins/org.eclipse.swt.cocoa.macosx.aarch64_3.124.0.v20230523-1044.jar"/>
-	<classpathentry kind="lib" path="/Applications/Eclipse-2023.app/Contents/Eclipse/plugins/org.eclipse.jface_3.30.0.v20230509-0720.jar"/>
-	<classpathentry kind="lib" path="/Applications/Eclipse-2023.app/Contents/Eclipse/plugins/org.eclipse.jface.text_3.24.0.v20230525-0719.jar"/>
-	<classpathentry kind="lib" path="/Applications/Eclipse-2023.app/Contents/Eclipse/plugins/org.eclipse.jface.source_3.30.0.v20230509-0720.jar"/>
-	<classpathentry kind="lib" path="/Applications/Eclipse-2023.app/Contents/Eclipse/plugins/org.eclipse.jface.text.source_3.24.0.v20230525-0719.jar"/>
-	<classpathentry kind="lib" path="/Applications/Eclipse-2023.app/Contents/Eclipse/plugins/org.eclipse.e4.ui.di_1.5.0.v20230501-1823.jar"/>
-	<classpathentry kind="lib" path="/Applications/Eclipse-2023.app/Contents/Eclipse/plugins/org.eclipse.e4.core.di.annotations_1.8.0.v20230429-1914.jar"/>
-	<classpathentry kind="lib" path="/Applications/Eclipse-2023.app/Contents/Eclipse/plugins/org.eclipse.e4.ui.workbench_1.15.0.v20230501-1823.jar"/>
-	<classpathentry kind="lib" path="/Applications/Eclipse-2023.app/Contents/Eclipse/plugins/org.eclipse.e4.ui.model.workbench_2.4.0.v20230404-0801.jar"/>
-	<classpathentry kind="lib" path="/Applications/Eclipse-2023.app/Contents/Eclipse/plugins/javax.annotation_1.3.5.v20230504-0748.jar"/>
-	<classpathentry kind="lib" path="/Applications/Eclipse-2023.app/Contents/Eclipse/plugins/org.eclipse.swt_3.124.0.v20230523-1044.jar"/>
-	<classpathentry kind="lib" path="/Applications/Eclipse-2023.app/Contents/Eclipse/plugins/org.eclipse.ui.workbench_3.129.0.v20230525-0648.jar"/>
-	<classpathentry kind="lib" path="/Applications/Eclipse-2023.app/Contents/Eclipse/plugins/org.eclipse.ui_3.203.100.v20230417-1307.jar"/>
-	<classpathentry kind="lib" path="lib/dependencies-1.0.jar"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="src" output="bin" path="src">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

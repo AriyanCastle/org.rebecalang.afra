@@ -1,0 +1,22 @@
+SAMPLEBUILDER.JAVA DOCUMENTATION
+=================================
+
+PURPOSE:
+Eclipse incremental project builder that validates XML files in Rebeca projects. Currently focused on XML validation rather than Rebeca compilation.
+
+ECLIPSE VS AFRA:
+- Extends Eclipse IncrementalProjectBuilder
+- Generic XML validation functionality (not Rebeca-specific)
+
+KEY METHODS:
+- build(int, Map, IProgressMonitor): Main build method, handles full and incremental builds
+- checkXML(IResource): Validates XML files using SAX parser
+- addMarker(): Creates error markers for XML validation issues
+- clean(IProgressMonitor): Removes all markers during clean build
+
+IMPORTANT NOTES:
+- Currently validates XML files, not Rebeca files
+- Uses SAX parser for XML validation
+- Creates Eclipse markers for XML parsing errors
+- Part of the build system but not the main Rebeca compiler
+- The actual Rebeca compilation happens in CompilationAndCodeGenerationProcess

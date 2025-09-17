@@ -1,0 +1,21 @@
+COMPILEHANDLER.JAVA DOCUMENTATION
+==================================
+
+PURPOSE:
+Eclipse command handler that manages compilation of Rebeca models. Triggered when user clicks compile button/menu.
+
+ECLIPSE VS AFRA:
+- Uses Eclipse E4 dependency injection (@Execute, @CanExecute)
+- Afra-specific implementation for Rebeca compilation workflow
+
+KEY METHODS:
+- canExecute(EPartService): Determines if compilation can be executed (validates active file)
+- execute(Shell): Main compilation execution, delegates to CompilationAndCodeGenerationProcess
+- Handles different compilation statuses (SUCCESSFUL, FAILED, CANCELED, RESOURCE_DOES_NOT_EXIST)
+
+IMPORTANT NOTES:
+- This is the entry point for user-triggered compilation
+- Shows compilation results in message dialogs
+- Opens Problems View on compilation failures
+- Validates that active file is a valid Rebeca file before compiling
+- Essential for the compile workflow in the IDE

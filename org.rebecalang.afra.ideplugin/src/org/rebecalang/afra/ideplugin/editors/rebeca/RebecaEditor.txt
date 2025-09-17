@@ -1,0 +1,24 @@
+REBECAEDITOR.JAVA DOCUMENTATION
+================================
+
+PURPOSE:
+Main text editor class for .rebeca files. Provides syntax highlighting, code folding, and editor functionality.
+
+ECLIPSE VS AFRA:
+- Extends Eclipse TextEditor framework
+- Afra-specific implementation for Rebeca language editing
+
+KEY METHODS:
+- RebecaEditor(): Constructor, sets up document provider and source viewer configuration
+- createPartControl(Composite): Creates editor UI with projection support for code folding
+- getDocument(): Returns the current document being edited
+- updateFoldingStructure(ArrayList<Position>): Updates code folding regions
+- createSourceViewer(): Creates the source viewer with projection support
+
+IMPORTANT NOTES:
+- This is the main editor component where users write Rebeca code
+- Supports code folding (collapsible code blocks)
+- Uses RebecaDocumentProvider and RebecaSourceViewerConfiguration
+- Maintains static reference to current editor instance
+- Integrates with ColorManager for syntax highlighting
+- Essential for the code editing experience
