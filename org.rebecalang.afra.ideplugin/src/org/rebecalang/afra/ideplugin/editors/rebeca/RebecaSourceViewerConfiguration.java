@@ -15,6 +15,7 @@ import org.rebecalang.afra.ideplugin.editors.GeneralTextAttribute;
 import org.rebecalang.afra.ideplugin.editors.formatter.RebecaFormattingStrategy;
 import org.eclipse.jface.text.reconciler.IReconciler;
 import org.eclipse.jface.text.reconciler.MonoReconciler;
+import org.eclipse.jface.text.ITextHover;
 
 
 public class RebecaSourceViewerConfiguration extends GeneralSourceViewerConfiguration {
@@ -88,6 +89,14 @@ public class RebecaSourceViewerConfiguration extends GeneralSourceViewerConfigur
         MonoReconciler reconciler = new MonoReconciler(strategy,false);
         
         return reconciler;
+    }
+
+    @Override
+    public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
+        if (IDocument.DEFAULT_CONTENT_TYPE.equals(contentType)) {
+            return new RebecaTextHover(this.editor);
+        }
+        return super.getTextHover(sourceViewer, contentType);
     }
 	
 }

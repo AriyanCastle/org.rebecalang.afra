@@ -1,0 +1,73 @@
+RebecaTextHover.java - Documentation
+=====================================
+
+SUMMARY:
+This class implements ITextHover to provide tooltip information when users hover over method calls and class usages in Rebeca code.
+
+PURPOSE:
+- Shows method signatures and documentation when hovering over method calls (e.g., self.method(), obj.method())
+- Shows class signatures and documentation when hovering over class usages (e.g., class instantiation)
+- Parses /** **/ documentation comments and displays them in tooltips
+
+KEY METHODS:
+
+1. getHoverInfo(ITextViewer, IRegion)
+   - Called when user hovers over text
+   - Analyzes the hovered text to determine if it's a method or class
+   - Returns formatted tooltip string with signature and documentation
+   - Returns null if no hover info available
+
+2. getHoverRegion(ITextViewer, int offset)
+   - Determines the text region (word boundaries) for the hover
+   - Uses Character.isJavaIdentifierPart() to find word boundaries
+   - Returns Region object representing the hoverable area
+
+3. analyzeHoverContext(IDocument, int, String)
+   - Analyzes surrounding context to determine hover type
+   - Uses regex patterns to detect:
+     * Method calls: identifier.methodName( or self.methodName(
+     * Class usage: new ClassName or ClassName identifier
+   - Returns HoverContext object with type and element name
+
+4. findMethodSignatureAndDoc(String, String)
+   - Searches document text for method declaration using regex
+   - Pattern: (/** doc */)? msgsrv methodName(params)
+   - Extracts signature and cleans up documentation
+   - Returns formatted hover text
+
+5. findClassSignatureAndDoc(String, String)
+   - Searches document text for class declaration using regex
+   - Pattern: (/** doc */)? reactiveclass ClassName(params)
+   - Extracts signature and cleans up documentation
+   - Returns formatted hover text
+
+6. cleanDocumentation(String)
+   - Removes /** and */ markers from documentation
+   - Normalizes whitespace
+   - Returns clean documentation text
+
+REGEX PATTERNS:
+- Method call detection: (\\w+|self)\\s*\\.\\s*methodName\\s*\\(
+- Method declaration: (?s)((?:/\\*\\*.*?\\*\\*/\\s*)?)msgsrv\\s+methodName\\s*\\([^)]*\\)
+- Class declaration: (?s)((?:/\\*\\*.*?\\*\\*/\\s*)?)reactiveclass\\s+ClassName\\s*\\([^)]*\\)
+
+INTEGRATION:
+- Integrated into RebecaSourceViewerConfiguration via getTextHover() method
+- Only active for DEFAULT_CONTENT_TYPE (normal Rebeca code)
+- Works alongside existing features like auto-completion and formatting
+
+EXAMPLE HOVER OUTPUTS:
+For method: "msgsrv arrive()" + "/** here is a method documentation **/"
+Output: "msgsrv arrive()\n\nhere is a method documentation"
+
+For class: "reactiveclass Philosopher(3)" + "/** Here is class documentation **/"
+Output: "reactiveclass Philosopher(3)\n\nHere is class documentation"
+
+ERROR HANDLING:
+- Returns null on BadLocationException or parsing errors
+- Gracefully handles missing documentation
+- Safely processes malformed code without crashing
+
+INNER CLASSES:
+- HoverContext: Holds hover type, element name, and additional info
+- HoverType enum: METHOD_CALL, CLASS_USAGE

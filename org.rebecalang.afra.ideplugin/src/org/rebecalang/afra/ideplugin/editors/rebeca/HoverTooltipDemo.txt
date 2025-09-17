@@ -1,0 +1,82 @@
+Hover Tooltip Feature - Demo and Usage Examples
+==============================================
+
+FEATURE OVERVIEW:
+The new hover tooltip feature provides signature and documentation information when users hover over:
+1. Method calls (e.g., self.arrive(), chpL.request())
+2. Class usages (e.g., new Philosopher, Philosopher phil0)
+
+SAMPLE FILE ANALYSIS:
+Using DiningPhilosophers-hint-comment.rebeca as reference:
+
+CLASS HOVER EXAMPLES:
+1. Hover over "Philosopher" in line 107: "Philosopher phil0(chp0, chp2):();"
+   Expected tooltip:
+   ---
+   reactiveclass Philosopher(3)
+   
+   Here is class documentation
+   ---
+
+2. Hover over "Chopstick" in line 111: "Chopstick chp0(phil0, phil1):();"
+   Expected tooltip:
+   ---
+   reactiveclass Chopstick(3)
+   ---
+   (No documentation for Chopstick class)
+
+METHOD HOVER EXAMPLES:
+1. Hover over "arrive" in line 16: "self.arrive();"
+   Expected tooltip:
+   ---
+   msgsrv arrive()
+   
+   here is a method documentation
+   ---
+
+2. Hover over "request" in line 21: "chpL.request();"
+   Expected tooltip:
+   ---
+   msgsrv request()
+   ---
+   (No documentation for request method)
+
+3. Hover over "permit" in line 71: "philL.permit();"
+   Expected tooltip:
+   ---
+   msgsrv permit()
+   ---
+
+HOW IT WORKS:
+1. User hovers mouse over identifier
+2. getHoverRegion() determines word boundaries
+3. analyzeHoverContext() uses regex to detect if it's a method call or class usage
+4. findMethodSignatureAndDoc() or findClassSignatureAndDoc() searches the document
+5. Tooltip appears with signature + documentation (if exists)
+
+TECHNICAL DETAILS:
+- Uses regex patterns to detect method calls: (\\w+|self)\\s*\\.\\s*methodName\\s*\\(
+- Uses regex patterns to detect class usage: new ClassName or ClassName identifier
+- Searches for signatures: msgsrv methodName(...) or reactiveclass ClassName(...)
+- Looks for /** **/ documentation at start of method/class body
+- Properly handles nested braces using brace matching algorithm
+
+INTEGRATION:
+- Added to RebecaSourceViewerConfiguration.getTextHover()
+- Works alongside existing auto-completion and formatting features
+- Uses Eclipse's built-in ITextHover interface
+- Automatically enabled for all .rebeca files
+
+USER EXPERIENCE:
+- Hover over any method call or class usage
+- Tooltip appears after brief delay
+- Shows clean, formatted signature and documentation
+- No tooltip for unrecognized elements (graceful degradation)
+- Compatible with existing editor features
+
+TESTING SCENARIOS:
+1. Hover over "self.arrive()" → Shows arrive() signature + documentation
+2. Hover over "chpL.request()" → Shows request() signature (no doc)
+3. Hover over "Philosopher" in main{} → Shows class signature + documentation
+4. Hover over regular variables → No tooltip (expected)
+5. Hover over keywords → No tooltip (expected)
