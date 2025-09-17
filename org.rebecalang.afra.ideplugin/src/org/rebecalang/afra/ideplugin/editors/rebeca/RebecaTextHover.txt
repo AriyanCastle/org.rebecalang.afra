@@ -48,8 +48,14 @@ KEY METHODS:
 
 REGEX PATTERNS:
 - Method call detection: (\\w+|self)\\s*\\.\\s*methodName\\s*\\(
-- Method declaration: (?s)((?:/\\*\\*.*?\\*\\*/\\s*)?)msgsrv\\s+methodName\\s*\\([^)]*\\)
-- Class declaration: (?s)((?:/\\*\\*.*?\\*\\*/\\s*)?)reactiveclass\\s+ClassName\\s*\\([^)]*\\)
+- Method declaration: msgsrv\\s+methodName\\s*\\([^)]*\\)
+- Method documentation: ^\\s*/\\*\\*\\s*(.*?)\\s*\\*\\*/
+- Class declaration: reactiveclass\\s+ClassName\\s*\\([^)]*\\)
+- Class documentation: ^\\s*/\\*\\*\\s*(.*?)\\s*\\*\\*/
+- Class usage patterns:
+  * new ClassName
+  * ClassName identifier(...):(...); (Rebeca instantiation)
+  * ClassName identifier (general usage)
 
 INTEGRATION:
 - Integrated into RebecaSourceViewerConfiguration via getTextHover() method

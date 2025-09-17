@@ -1,0 +1,75 @@
+Hover Tooltip Fixes - Verification
+===================================
+
+FIXED ISSUES:
+
+1. METHOD DOCUMENTATION EXTRA STAR:
+   Problem: Documentation showing "here is a method documentation *"
+   Cause: Regex pattern "/\\*\\*\\s*(.*?)\\s*\\*/" was capturing one * from "*/"
+   Fix: Changed to "/\\*\\*\\s*(.*?)\\s*\\*\\*/" to properly match complete /** ... **/
+   
+   Before: ^\\s*/\\*\\*\\s*(.*?)\\s*\\*/
+   After:  ^\\s*/\\*\\*\\s*(.*?)\\s*\\*\\*/
+
+2. CLASS HOVER NOT WORKING:
+   Problem: Hovering over "Philosopher" in "Philosopher phil0(chp0, chp2):();" shows no tooltip
+   Cause: Class detection patterns didn't match Rebeca's specific instantiation syntax
+   Fix: Added specific pattern for Rebeca class instantiation syntax
+   
+   New patterns added:
+   - Pattern 1: new ClassName
+   - Pattern 2: ClassName identifier(...):(...); (Rebeca instantiation)
+   - Pattern 3: ClassName identifier (general usage, excluding declarations)
+
+SPECIFIC TEST CASES:
+
+Test Case 1: Method Documentation
+Line: msgsrv arrive() { /** here is a method documentation **/ }
+Expected hover on "arrive" call:
+---
+msgsrv arrive()
+
+here is a method documentation
+---
+(No extra star at the end)
+
+Test Case 2: Class Instantiation in Main
+Line: Philosopher phil0(chp0, chp2):();
+Expected hover on "Philosopher":
+---
+reactiveclass Philosopher(3)
+
+Here is class documentation
+---
+
+Test Case 3: Class Declaration (Should NOT trigger hover)
+Line: reactiveclass Philosopher(3) {
+Expected: No hover tooltip (this is the declaration, not usage)
+
+REGEX PATTERN ANALYSIS:
+
+For line: "Philosopher phil0(chp0, chp2):();"
+Pattern: \\bPhilosopher\\s+\\w+\\s*\\([^)]*\\)\\s*:\\s*\\([^)]*\\)\\s*;
+
+Breakdown:
+- \\bPhilosopher\\b = word boundary + "Philosopher" + word boundary
+- \\s+ = one or more whitespace
+- \\w+ = word characters (phil0)
+- \\s* = optional whitespace
+- \\([^)]*\\) = parentheses with content (chp0, chp2)
+- \\s*:\\s* = optional whitespace + colon + optional whitespace
+- \\([^)]*\\) = parentheses with content (empty in this case)
+- \\s*; = optional whitespace + semicolon
+
+VERIFICATION STEPS:
+1. Hover over "arrive" in "self.arrive()" → Should show method signature + documentation
+2. Hover over "Philosopher" in "Philosopher phil0..." → Should show class signature + documentation
+3. Hover over "chpL" in "chpL.request()" → Should show method signature (no documentation)
+4. Hover over regular variables → Should show no tooltip
+5. Check that documentation doesn't have extra stars
+
+ERROR HANDLING:
+- Graceful fallback for malformed patterns
+- Proper brace matching for nested structures
+- Safe regex compilation and matching
+- Null checks for all string operations

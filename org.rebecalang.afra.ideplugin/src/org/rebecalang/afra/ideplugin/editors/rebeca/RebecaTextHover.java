@@ -98,14 +98,24 @@ public class RebecaTextHover implements ITextHover {
                 return new HoverContext(HoverType.METHOD_CALL, hoveredText, null);
             }
             
-            // Check if this is a class instantiation (pattern: new ClassName or ClassName identifier)
-            Pattern classPattern = Pattern.compile("\\b" + Pattern.quote(hoveredText) + "\\b");
-            if (classPattern.matcher(line).find()) {
-                // Look for patterns that suggest this is a class usage
-                if (line.contains("new " + hoveredText) || 
-                    line.matches(".*\\s+" + Pattern.quote(hoveredText) + "\\s+\\w+.*")) {
-                    return new HoverContext(HoverType.CLASS_USAGE, hoveredText, null);
-                }
+            // Check if this is a class instantiation or usage
+        
+            
+            // Pattern 1: ClassName identifier(...):(...); (Rebeca class instantiation in main)
+            Pattern rebecaClassPattern = Pattern.compile(
+                "\\b" + Pattern.quote(hoveredText) + "\\s+\\w+\\s*\\([^)]*\\)\\s*:\\s*\\([^)]*\\)\\s*;"
+            );
+            if (rebecaClassPattern.matcher(line).find()) {
+                return new HoverContext(HoverType.CLASS_USAGE, hoveredText, null);
+            }
+            
+            // Pattern 2: ClassName identifier (general class usage)
+            Pattern classUsagePattern = Pattern.compile(
+                "\\b" + Pattern.quote(hoveredText) + "\\s+\\w+\\b"
+            );
+            if (classUsagePattern.matcher(line).find() && !line.trim().startsWith("reactiveclass")) {
+                // Make sure we're not matching the class declaration itself
+                return new HoverContext(HoverType.CLASS_USAGE, hoveredText, null);
             }
             
         } catch (BadLocationException e) {
@@ -158,7 +168,7 @@ public class RebecaTextHover implements ITextHover {
                     String methodBody = documentText.substring(braceStart + 1, braceEnd);
                     
                     // Look for /** */ documentation at the beginning of the method body
-                    Pattern docPattern = Pattern.compile("^\\s*/\\*\\*\\s*(.*?)\\s*\\*/", Pattern.DOTALL);
+                    Pattern docPattern = Pattern.compile("^\\s*/\\*\\*\\s*(.*?)\\s*\\*\\*/", Pattern.DOTALL);
                     Matcher docMatcher = docPattern.matcher(methodBody);
                     
                     StringBuilder hoverInfo = new StringBuilder();
@@ -205,7 +215,7 @@ public class RebecaTextHover implements ITextHover {
                     String classBody = documentText.substring(braceStart + 1, braceEnd);
                     
                     // Look for /** */ documentation at the beginning of the class body
-                    Pattern docPattern = Pattern.compile("^\\s*/\\*\\*\\s*(.*?)\\s*\\*/", Pattern.DOTALL);
+                    Pattern docPattern = Pattern.compile("^\\s*/\\*\\*\\s*(.*?)\\s*\\*\\*/", Pattern.DOTALL);
                     Matcher docMatcher = docPattern.matcher(classBody);
                     
                     StringBuilder hoverInfo = new StringBuilder();
