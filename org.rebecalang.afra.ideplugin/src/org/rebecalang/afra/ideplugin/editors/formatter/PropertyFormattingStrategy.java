@@ -10,10 +10,10 @@ import org.eclipse.jface.text.formatter.IFormattingStrategy;
  */
 public class PropertyFormattingStrategy implements IFormattingStrategy {
     
-    private final PropertyFormatter formatter;
+    private final ImprovedPropertyFormatter formatter;
     
     public PropertyFormattingStrategy() {
-        this.formatter = new PropertyFormatter();
+        this.formatter = new ImprovedPropertyFormatter();
     }
     
     @Override

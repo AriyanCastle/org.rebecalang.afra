@@ -9,7 +9,7 @@ import org.eclipse.jface.text.IRegion;
  */
 public class PropertyFormatter implements IAfraFormatter {
     
-    private static final String INDENT = "    "; // 4 spaces for property files
+    private static final String INDENT = "\t"; // Use tabs for property files (same as Rebeca)
     private static final String NEW_LINE = System.getProperty("line.separator");
     
     @Override
@@ -71,20 +71,18 @@ public class PropertyFormatter implements IAfraFormatter {
     }
     
     private String formatOperatorsAndKeywords(String content) {
-        // Format assignment operators
-        content = content.replaceAll("\\s*=\\s*", " = ");
-        
-        // Format comparison operators
+        // Format compound operators FIRST to avoid breaking them apart
         content = content.replaceAll("\\s*==\\s*", " == ");
         content = content.replaceAll("\\s*!=\\s*", " != ");
         content = content.replaceAll("\\s*<=\\s*", " <= ");
         content = content.replaceAll("\\s*>=\\s*", " >= ");
-        content = content.replaceAll("(?<!<|>|!)\\s*<\\s*(?!=)", " < ");
-        content = content.replaceAll("(?<!<|>)\\s*>\\s*(?!=)", " > ");
-        
-        // Format logical operators
         content = content.replaceAll("\\s*&&\\s*", " && ");
         content = content.replaceAll("\\s*\\|\\|\\s*", " || ");
+        
+        // Format single operators (after compound ones are protected)
+        content = content.replaceAll("(?<!\\+|=|!|<|>)\\s*=\\s*(?!=)", " = ");
+        content = content.replaceAll("(?<!<|>|=)\\s*<\\s*(?!=)", " < ");
+        content = content.replaceAll("(?<!<|>|=)\\s*>\\s*(?!=)", " > ");
         
         // Format negation operator
         content = content.replaceAll("!\\s*\\(", "!(");
@@ -112,7 +110,7 @@ public class PropertyFormatter implements IAfraFormatter {
             
             // Skip multiple consecutive empty lines
             if (line.isEmpty()) {
-                if (!previousLineWasEmpty) {
+                if (!previousLineWasEmpty && result.length() > 0) {
                     result.append(NEW_LINE);
                     previousLineWasEmpty = true;
                 }
@@ -134,49 +132,45 @@ public class PropertyFormatter implements IAfraFormatter {
             line = formatBracesInLine(line);
             result.append(line);
             
-            // Increase indent for opening braces
-            if (line.contains("{") && !line.contains("}")) {
+            // Increase indent for opening braces (but only if the line ends with {)
+            if (line.endsWith("{")) {
                 indentLevel++;
             }
-            // Handle lines with both opening and closing braces
-            else if (line.contains("{") && line.contains("}")) {
-                // Count braces to determine net change
-                long openCount = line.chars().filter(ch -> ch == '{').count();
-                long closeCount = line.chars().filter(ch -> ch == '}').count();
-                indentLevel += (openCount - closeCount);
-                indentLevel = Math.max(0, indentLevel);
-            }
             
-            result.append(NEW_LINE);
+            // Add newline after each line
+            if (i < lines.length - 1 || !line.isEmpty()) {
+                result.append(NEW_LINE);
+            }
         }
         
         return result.toString();
     }
     
     private String formatBracesInLine(String line) {
-        // Ensure space before opening braces
-        line = line.replaceAll("\\s*\\{", " {");
-        
-        // Handle special cases where we don't want space before {
-        line = line.replaceAll("^\\s+\\{", "{"); // Line starting with {
+        // Ensure space before opening braces (but not at start of line)
+        line = line.replaceAll("([^\\s])\\s*\\{", "$1 {");
         
         return line;
     }
     
     private String cleanupFormatting(String content) {
-        // Remove any trailing whitespace
+        // Remove any trailing whitespace from lines
         content = content.replaceAll("[ \t]+\n", "\n");
         
         // Ensure file ends with a single newline
         content = content.replaceAll("\n*$", "\n");
         
-        // Fix any double spaces that might have been introduced
-        content = content.replaceAll("  +", " ");
-        
         // Fix spacing around parentheses
-        content = content.replaceAll("\\s+\\(", " (");
         content = content.replaceAll("\\(\\s+", "(");
         content = content.replaceAll("\\s+\\)", ")");
+        
+        // Fix any issues with compound operators that might have been broken
+        content = content.replaceAll("= = ", "== ");
+        content = content.replaceAll("! = ", "!= ");
+        content = content.replaceAll("< = ", "<= ");
+        content = content.replaceAll("> = ", ">= ");
+        content = content.replaceAll("& & ", "&& ");
+        content = content.replaceAll("\\| \\| ", "|| ");
         
         return content;
     }
