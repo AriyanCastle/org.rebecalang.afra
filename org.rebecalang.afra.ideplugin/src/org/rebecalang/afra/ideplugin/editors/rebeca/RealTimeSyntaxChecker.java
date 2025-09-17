@@ -35,7 +35,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  */
 public class RealTimeSyntaxChecker implements IDocumentListener {
     
-    private static final int DEBOUNCE_DELAY_MS = 300;
+    private static final int DEBOUNCE_DELAY_MS = 600;
     
     @Autowired
     private ExceptionContainer exceptionContainer;
