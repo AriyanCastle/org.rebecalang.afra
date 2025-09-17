@@ -147,7 +147,7 @@ public class RealTimeSyntaxChecker implements IDocumentListener {
             System.out.println("RealTimeSyntaxChecker: First 100 chars: " + (content.length() > 100 ? content.substring(0, 100) : content));
             
             // For testing: add a syntax error to see if we can detect it
-            String testContent = content + "\n\n// TEST SYNTAX ERROR\ninvalid syntax here @@@@";
+            String testContent = content + "\n\n// TEST SYNTAX ERROR\ninvalid_keyword_here syntax_error_test $$$$;";
             
             // Save content to temporary file for syntax checking
             File tempFile = createTempFileWithContent(testContent);
@@ -191,6 +191,16 @@ public class RealTimeSyntaxChecker implements IDocumentListener {
         try (java.io.FileWriter writer = new java.io.FileWriter(tempFile)) {
             writer.write(content);
         }
+        
+        // Debug: Read back the file to verify content
+        try {
+            String readBack = java.nio.file.Files.readString(tempFile.toPath());
+            System.out.println("RealTimeSyntaxChecker: Temp file content length: " + readBack.length());
+            System.out.println("RealTimeSyntaxChecker: Last 200 chars: " + (readBack.length() > 200 ? readBack.substring(readBack.length() - 200) : readBack));
+        } catch (Exception e) {
+            System.err.println("RealTimeSyntaxChecker: Failed to read back temp file: " + e.getMessage());
+        }
+        
         return tempFile;
     }
     
@@ -268,13 +278,24 @@ public class RealTimeSyntaxChecker implements IDocumentListener {
     private Set<CompilerExtension> getCompilerExtensions() {
         // Use the same extension retrieval logic as the main compiler
         try {
-            return org.rebecalang.afra.ideplugin.handler.CompilationAndCodeGenerationProcess
+            Set<CompilerExtension> extensions = org.rebecalang.afra.ideplugin.handler.CompilationAndCodeGenerationProcess
                 .retrieveCompationExtension(file.getProject());
+            System.out.println("RealTimeSyntaxChecker: Retrieved extensions from project: " + extensions);
+            
+            // If empty, add core rebeca as minimum requirement
+            if (extensions.isEmpty()) {
+                System.out.println("RealTimeSyntaxChecker: Extensions empty, adding CORE_REBECA");
+                extensions.add(CompilerExtension.CORE_REBECA);
+            }
+            
+            return extensions;
         } catch (Exception e) {
+            System.err.println("RealTimeSyntaxChecker: Failed to get extensions: " + e.getMessage());
             // Fallback to minimal extensions
             Set<CompilerExtension> extensions = new java.util.HashSet<>();
-            // Add core rebeca as default
-            return extensions; // Will use default extensions from compiler
+            extensions.add(CompilerExtension.CORE_REBECA);
+            System.out.println("RealTimeSyntaxChecker: Using fallback extensions: " + extensions);
+            return extensions;
         }
     }
     
@@ -317,8 +338,28 @@ public class RealTimeSyntaxChecker implements IDocumentListener {
     private void createSyntaxErrorMarkers() {
         try {
             System.out.println("RealTimeSyntaxChecker: Creating syntax error markers");
+            
+            // Debug: Print all files in exception container
+            System.out.println("RealTimeSyntaxChecker: All files in exception container:");
+            for (File f : exceptionContainer.getExceptions().keySet()) {
+                System.out.println("RealTimeSyntaxChecker: - " + f.getAbsolutePath());
+            }
+            
+            // Try to get exceptions for original file first
             Set<Exception> exceptions = exceptionContainer.getExceptions().get(file.getRawLocation().toFile());
-            System.out.println("RealTimeSyntaxChecker: Exceptions for file: " + (exceptions != null ? exceptions.size() : "null"));
+            System.out.println("RealTimeSyntaxChecker: Exceptions for original file (" + file.getRawLocation().toFile().getAbsolutePath() + "): " + (exceptions != null ? exceptions.size() : "null"));
+            
+            // If no exceptions for original file, try to get from any file (temp file)
+            if (exceptions == null && !exceptionContainer.getExceptions().isEmpty()) {
+                System.out.println("RealTimeSyntaxChecker: No exceptions for original file, trying temp file exceptions");
+                for (Set<Exception> tempExceptions : exceptionContainer.getExceptions().values()) {
+                    if (tempExceptions != null && !tempExceptions.isEmpty()) {
+                        exceptions = tempExceptions;
+                        System.out.println("RealTimeSyntaxChecker: Found exceptions in temp file: " + exceptions.size());
+                        break;
+                    }
+                }
+            }
             
             if (exceptions != null) {
                 // Create marker for first error only (optimization)
@@ -331,6 +372,8 @@ public class RealTimeSyntaxChecker implements IDocumentListener {
                         break; // Stop at first error for performance
                     }
                 }
+            } else {
+                System.out.println("RealTimeSyntaxChecker: No exceptions found in any file");
             }
         } catch (Exception e) {
             System.err.println("RealTimeSyntaxChecker: Failed to create syntax error markers: " + e.getMessage());
