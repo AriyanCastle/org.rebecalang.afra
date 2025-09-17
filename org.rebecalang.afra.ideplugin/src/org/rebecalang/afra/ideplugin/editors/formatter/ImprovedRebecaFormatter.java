@@ -44,42 +44,17 @@ public class ImprovedRebecaFormatter implements IAfraFormatter {
             return content;
         }
         
-        // Conservative approach: only fix obvious spacing issues
-        String formatted = content;
-        
-        // Step 1: Normalize line endings and remove trailing spaces
-        formatted = formatted.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
-        formatted = formatted.replaceAll("[ \t]+\n", "\n");
-        
-        // Step 2: Apply minimal formatting that matches samples exactly
-        formatted = applyMinimalFormatting(formatted);
-        
-        // Step 3: Fix indentation
-        formatted = fixIndentation(formatted);
+        // Step 1: Just fix indentation and basic structure
+        String formatted = fixIndentationOnly(content);
         
         return formatted;
     }
     
-    private String applyMinimalFormatting(String content) {
-        // Only fix the most obvious spacing issues without breaking anything
+    private String fixIndentationOnly(String content) {
+        // Normalize line endings and remove trailing spaces
+        content = content.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+        content = content.replaceAll("[ \t]+\n", "\n");
         
-        // Fix space after commas in parameter lists
-        content = content.replaceAll(",([^\\s])", ", $1");
-        
-        // Fix space around = (but be very careful)
-        content = content.replaceAll("([^=!<>])=([^=])", "$1 = $2");
-        
-        // Fix space before { in declarations (but preserve existing good spacing)
-        content = content.replaceAll("([a-zA-Z)])\\{", "$1 {");
-        
-        // Ensure proper spacing in if statements
-        content = content.replaceAll("if\\(", "if(");
-        content = content.replaceAll("else\\{", "} else {");
-        
-        return content;
-    }
-    
-    private String fixIndentation(String content) {
         StringBuilder result = new StringBuilder();
         String[] lines = content.split("\n");
         int indentLevel = 0;
@@ -102,6 +77,8 @@ public class ImprovedRebecaFormatter implements IAfraFormatter {
                 result.append(INDENT);
             }
             
+            // Apply only essential formatting
+            trimmed = applyEssentialFormatting(trimmed);
             result.append(trimmed);
             
             // Increase indent for opening braces
@@ -112,7 +89,26 @@ public class ImprovedRebecaFormatter implements IAfraFormatter {
             result.append(NEW_LINE);
         }
         
-        // Clean up any trailing newlines
         return result.toString().replaceAll("\n+$", "\n");
+    }
+    
+    private String applyEssentialFormatting(String line) {
+        // Only fix the most critical spacing issues
+        
+        // Fix space after commas (only if missing)
+        if (line.contains(",") && !line.matches(".*,\\s.*")) {
+            line = line.replaceAll(",([^\\s])", ", $1");
+        }
+        
+        // Fix space before { (only if missing)
+        if (line.contains("{") && !line.matches(".*\\s\\{.*")) {
+            line = line.replaceAll("([a-zA-Z)])\\{", "$1 {");
+        }
+        
+        // Fix basic assignment spacing (be very conservative)
+        // Only fix obvious cases like "a=b" to "a = b"
+        line = line.replaceAll("([a-zA-Z0-9])=([a-zA-Z0-9])", "$1 = $2");
+        
+        return line;
     }
 }
