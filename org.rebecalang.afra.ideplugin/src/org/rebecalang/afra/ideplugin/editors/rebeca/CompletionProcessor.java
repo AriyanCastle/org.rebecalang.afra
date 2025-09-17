@@ -58,52 +58,168 @@ public class CompletionProcessor implements IContentAssistProcessor {
 	}
 
 	private int getWordStartIndex(IDocument document, int offset) throws BadLocationException {
+		if (offset <= 0) return 0;
+		
 		int index = offset - 1;
-		while (index >= 0 && document.getChar(index) != ' ' && document.getChar(index) != '\t' && document.getChar(index) != '\n') {
+		while (index >= 0) {
+			char ch = document.getChar(index);
+			if (!Character.isJavaIdentifierPart(ch) && ch != '.') {
+				break;
+			}
 			index--;
 		}
-		return index+1;
+		return index + 1;
 	}
 
 	private int getWordEndIndex(IDocument document, int offset) throws BadLocationException {
-		int index = offset - 1;
-		while (index < document.getLength() && document.getChar(index) != ' ' && document.getChar(index) != '\t' && document.getChar(index) != '\n') index++;
+		int index = offset;
+		int length = document.getLength();
+		
+		while (index < length) {
+			char ch = document.getChar(index);
+			if (!Character.isJavaIdentifierPart(ch) && ch != '.') {
+				break;
+			}
+			index++;
+		}
 		return index;
 	}
 	
-	private String getCurrentWord(IDocument document, int offset) throws BadLocationException {
-		int startIndex = getWordStartIndex(document, offset);
-		int endIndex = getWordEndIndex(document, offset);
-		return document.get(startIndex, endIndex - startIndex);
+	private String getCurrentWord(IDocument document, int offset) {
+		try {
+			if (offset <= 0 || offset > document.getLength()) {
+				return "";
+			}
+			
+			int startIndex = getWordStartIndex(document, offset);
+			int endIndex = getWordEndIndex(document, offset);
+			
+			if (startIndex >= endIndex || startIndex < 0 || endIndex > document.getLength()) {
+				return "";
+			}
+			
+			return document.get(startIndex, endIndex - startIndex);
+		} catch (Exception e) {
+			System.err.println("Error getting current word: " + e.getMessage());
+			return "";
+		}
 	}
 
 	private void addAllMethodsAndFields(SymbolTable symbolTable, Type classType, int offset, ArrayList<ICompletionProposal> proposals) {
-		String suggestion;
-		Enumeration<String> keys = symbolTable.getmethodSymbolTable().get(classType).keys();
-		while (keys.hasMoreElements()) {
-			suggestion = keys.nextElement();
-			proposals.add(new CompletionProposal(suggestion + "()", offset, 0, suggestion.length() + 1));
-		}
-		
-		keys = symbolTable.getVariableSymbolTable().get(classType).keys();
-		while (keys.hasMoreElements()) {
-			suggestion = keys.nextElement();
-			proposals.add(new CompletionProposal(suggestion, offset, 0, suggestion.length()));
+		try {
+			if (symbolTable == null || classType == null) {
+				return;
+			}
+			
+			// Add methods
+			if (symbolTable.getmethodSymbolTable() != null && symbolTable.getmethodSymbolTable().get(classType) != null) {
+				Enumeration<String> keys = symbolTable.getmethodSymbolTable().get(classType).keys();
+				while (keys.hasMoreElements()) {
+					String suggestion = keys.nextElement();
+					if (suggestion != null && !suggestion.isEmpty()) {
+						proposals.add(new CompletionProposal(suggestion + "()", offset, 0, suggestion.length() + 1));
+					}
+				}
+			}
+			
+			// Add fields
+			if (symbolTable.getVariableSymbolTable() != null && symbolTable.getVariableSymbolTable().get(classType) != null) {
+				Enumeration<String> keys = symbolTable.getVariableSymbolTable().get(classType).keys();
+				while (keys.hasMoreElements()) {
+					String suggestion = keys.nextElement();
+					if (suggestion != null && !suggestion.isEmpty()) {
+						proposals.add(new CompletionProposal(suggestion, offset, 0, suggestion.length()));
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("Error adding methods and fields: " + e.getMessage());
 		}
 	}
 	
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
-	   
+		ArrayList<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
+		
 		try {
+			System.out.println("CompletionProcessor.computeCompletionProposals called with offset: " + offset);
+			
 			IDocument document = viewer.getDocument();
-			File tempRebecaFile = File.createTempFile("AfraTempFile", "model.rebeca");
+			
+			// Safety check for offset
+			if (offset <= 0 || offset > document.getLength()) {
+				System.out.println("Invalid offset, returning empty proposals");
+				return new ICompletionProposal[0];
+			}
+			
+			// Get current word being typed
+			String currentWord = getCurrentWord(document, offset);
+			if (currentWord == null) {
+				currentWord = "";
+			}
+			
+			System.out.println("Current word: '" + currentWord + "'");
+			
+			// Always provide basic keyword completion regardless of compilation status
+			addBasicCompletions(currentWord, offset, proposals);
+			
+			System.out.println("Added " + proposals.size() + " basic completions");
+			
+			// Try advanced completions (may fail if compilation fails)
+			try {
+				addAdvancedCompletions(document, offset, currentWord, proposals);
+				System.out.println("Total completions after advanced: " + proposals.size());
+			} catch (Exception e) {
+				// Log the error but don't fail the entire completion
+				System.err.println("Advanced completion failed: " + e.getMessage());
+				// Continue with basic completions only
+			}
+			
+			ICompletionProposal[] result = proposals.toArray(new ICompletionProposal[proposals.size()]);
+			System.out.println("Returning " + result.length + " completion proposals");
+			return result;
+			
+		} catch (Exception e) {
+			System.err.println("CompletionProcessor error: " + e.getMessage());
+			e.printStackTrace();
+			// Return empty array instead of null to prevent error sound
+			return new ICompletionProposal[0];
+		}	
+	}
+	
+	private void addBasicCompletions(String currentWord, int offset, ArrayList<ICompletionProposal> proposals) {
+		// Add keywords - ensure case-insensitive matching for better UX
+		for (String keyword : keywords) {
+			if (keyword.toLowerCase().startsWith(currentWord.toLowerCase())) {
+				proposals.add(new CompletionProposal(keyword, offset - currentWord.length(), 
+					currentWord.length(), keyword.length()));
+			}
+		}
+		
+		// Add types
+		for (String type : types) {
+			if (type.toLowerCase().startsWith(currentWord.toLowerCase())) {
+				proposals.add(new CompletionProposal(type, offset - currentWord.length(), 
+					currentWord.length(), type.length()));
+			}
+		}
+	}
+	
+	private void addAdvancedCompletions(IDocument document, int offset, String currentWord, 
+			ArrayList<ICompletionProposal> proposals) throws Exception {
+		
+		File tempRebecaFile = File.createTempFile("AfraTempFile", "model.rebeca");
+		try {
 			FileWriter fstream = new FileWriter(tempRebecaFile);
 			BufferedWriter tempRebecaFileWriter = new BufferedWriter(fstream);
 			tempRebecaFileWriter.write(document.get());
 			tempRebecaFileWriter.close();
 
 			IProject project = CompilationAndCodeGenerationProcess.getProject();
+			if (project == null) {
+				return; // No project context, skip advanced completions
+			}
+			
 			Set<CompilerExtension> compationExtensions = 
 					CompilationAndCodeGenerationProcess.retrieveCompationExtension(project);
 			
@@ -114,113 +230,127 @@ public class CompletionProcessor implements IContentAssistProcessor {
 			
 			RebecaModel rebecaModel = compilationResult.getFirst();
 			SymbolTable symbolTable = compilationResult.getSecond();
-			int lineNumber = document.getLineOfOffset(offset);			
-			ArrayList<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
-
-			// Check last letter for '{', '(' and '['
-			if( document.getChar(offset-1) == '{' ) {	
-				document.replace(offset-1, 1, "{}");
-				this.editor.selectAndReveal(offset, 0);
+			
+			if (rebecaModel == null || rebecaModel.getRebecaCode() == null) {
+				return; // Compilation failed, skip advanced completions
 			}
-			else if( document.getChar(offset-1) == '(' ) {
-				document.replace(offset-1, 1, "()");
-				this.editor.selectAndReveal(offset, 0);
-			}
-			else if( document.getChar(offset-1) == '[' ) {
-				document.replace(offset-1, 1, "[]");
-				this.editor.selectAndReveal(offset, 0);
+			
+			int lineNumber = document.getLineOfOffset(offset);
+			
+			// Check for suggestion inside main
+			if (rebecaModel.getRebecaCode().getMainDeclaration() != null &&
+				lineNumber >= rebecaModel.getRebecaCode().getMainDeclaration().getLineNumber() &&
+				lineNumber <= rebecaModel.getRebecaCode().getMainDeclaration().getEndLineNumber()) {
+				
+				addMainContextCompletions(rebecaModel, symbolTable, currentWord, offset, proposals);
 			}
 			else {
-				String currentWord = getCurrentWord(document, offset);
+				// Check for suggestions inside class
+				addClassContextCompletions(rebecaModel, symbolTable, currentWord, offset, lineNumber, proposals);
+			}
+			
+		} finally {
+			// Clean up temp file
+			if (tempRebecaFile.exists()) {
+				tempRebecaFile.delete();
+			}
+		}
+	}
+	
+	private void addMainContextCompletions(RebecaModel rebecaModel, SymbolTable symbolTable, 
+			String currentWord, int offset, ArrayList<ICompletionProposal> proposals) {
+		
+		if (rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition() == null) {
+			return;
+		}
+		
+		// Check for local variables						
+		for (MainRebecDefinition mrd : rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition()) {
+			if (mrd.getName() != null && mrd.getName().startsWith(currentWord)) {
+				proposals.add(new CompletionProposal(mrd.getName(), offset - currentWord.length(), 
+					currentWord.length(), mrd.getName().length()));
+			}
+		}
+
+		// Check for methods and fields 
+		if (currentWord.length() > 0 && currentWord.charAt(currentWord.length()-1) == '.') {
+			String objectName = currentWord.substring(0, currentWord.length() - 1);
+			for (MainRebecDefinition mrd : rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition()) {
+				if (mrd.getName() != null && mrd.getName().equals(objectName)) {
+					addAllMethodsAndFields(symbolTable, mrd.getType(), offset, proposals);
+				}
+			}
+		}
+	}
+	
+	private void addClassContextCompletions(RebecaModel rebecaModel, SymbolTable symbolTable, 
+			String currentWord, int offset, int lineNumber, ArrayList<ICompletionProposal> proposals) {
+		
+		if (rebecaModel.getRebecaCode().getReactiveClassDeclaration() == null) {
+			return;
+		}
+		
+		for(ReactiveClassDeclaration rcd : rebecaModel.getRebecaCode().getReactiveClassDeclaration()) {
+			if (lineNumber >= rcd.getLineNumber() && lineNumber <= rcd.getEndLineNumber()) {
 				
-				// Check for types
-				for (String s : types) {
-					if (s.startsWith(currentWord)) {
-						proposals.add(new CompletionProposal( s, offset-currentWord.length(), currentWord.length(), s.length()));
+				// Getting all statevars and kownrebecs
+				List<FieldDeclaration> fields = new ArrayList<>();
+				if (rcd.getKnownRebecs() != null) {
+					fields.addAll(rcd.getKnownRebecs());
+				}
+				if (rcd.getStatevars() != null) {
+					fields.addAll(rcd.getStatevars());
+				}
+				
+				// Check for statevars and knownrebecs
+				for (FieldDeclaration fd : fields) {
+					if (fd.getVariableDeclarators() != null) {
+						for (VariableDeclarator vd : fd.getVariableDeclarators()) {	
+							if (vd.getVariableName() != null && vd.getVariableName().startsWith(currentWord)) {
+								proposals.add(new CompletionProposal(vd.getVariableName(), 
+									offset - currentWord.length(), currentWord.length(), vd.getVariableName().length()));
+							}								
+						}
 					}
 				}
 				
-				// Check for suggestion inside main
-				if (lineNumber >= rebecaModel.getRebecaCode().getMainDeclaration().getLineNumber() &&
-					lineNumber <= rebecaModel.getRebecaCode().getMainDeclaration().getEndLineNumber()) {
-						// Check for local variables						
-						for (MainRebecDefinition mrd : rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition()) {
-							if (mrd.getName() != null && mrd.getName().startsWith(currentWord)) {
-								proposals.add(new CompletionProposal( mrd.getName(), offset-currentWord.length(), currentWord.length(), mrd.getName().length()));
+				// Check for method calls
+				if (currentWord.length() > 0 && currentWord.charAt(currentWord.length()-1) == '.') {
+					String objectName = currentWord.substring(0, currentWord.length() - 1);
+
+					// Check for self methods
+					if (objectName.equals("self")) {
+						List<MethodDeclaration> methods = new ArrayList<>();
+						if (rcd.getMsgsrvs() != null) {
+							methods.addAll(rcd.getMsgsrvs());
+						}
+						if (rcd.getSynchMethods() != null) {
+							methods.addAll(rcd.getSynchMethods());
+						}
+						
+						for (MethodDeclaration md : methods) {
+							if (md.getName() != null) {
+								proposals.add(new CompletionProposal(md.getName() + "()", offset, 0, 
+									md.getName().length() + 1));
 							}
 						}
-
-						// Check for methods and fields 
-						if (currentWord.charAt(currentWord.length()-1) == '.') {
-							currentWord = currentWord.substring(0, currentWord.length() - 1);
-							for (MainRebecDefinition mrd : rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition()) {
-								if (mrd.getName() != null && mrd.getName().equals(currentWord)) {
-									addAllMethodsAndFields(symbolTable, mrd.getType(), offset, proposals);
-								}
-							}
-						}
-				}
-				else {// Check for suggestions inside class
-					for(ReactiveClassDeclaration rcd : rebecaModel.getRebecaCode().getReactiveClassDeclaration()) {
-						if (lineNumber >= rcd.getLineNumber() && lineNumber <= rcd.getEndLineNumber()) {
-							// Check for keywords
-							for (String s : keywords) {
-								if (s.startsWith(currentWord)) {
-									proposals.add(new CompletionProposal( s, offset-currentWord.length(), currentWord.length(), s.length()));
-								}
-							}
-
-							// Getting all statevars and kownrebecs
-							List<FieldDeclaration> fields = new ArrayList<>();
-							fields.addAll(rcd.getKnownRebecs());
-							fields.addAll(rcd.getStatevars());
-							
-							// Check for statevars and knownrebecs
-							for (FieldDeclaration fd : fields) {
+					}
+					// Check for methods for other classes
+					else {								
+						for (FieldDeclaration fd : fields) {
+							if (fd.getVariableDeclarators() != null) {
 								for (VariableDeclarator vd : fd.getVariableDeclarators()) {	
-									if (vd.getVariableName().startsWith(currentWord)) {
-										proposals.add(new CompletionProposal(vd.getVariableName(), offset - currentWord.length(), currentWord.length(), vd.getVariableName().length()));
+									if (vd.getVariableName() != null && vd.getVariableName().equals(objectName)) {
+										addAllMethodsAndFields(symbolTable, fd.getType(), offset, proposals);
 									}								
 								}
 							}
-							
-							// Check for method calls
-							if (currentWord.charAt(currentWord.length()-1) == '.') {
-								currentWord = currentWord.substring(0, currentWord.length() - 1);
-
-								// Check for self methods
-								if (currentWord.equals("self")) {
-									List<MethodDeclaration> methods = new ArrayList<>();
-									methods.addAll(rcd.getMsgsrvs());
-									methods.addAll(rcd.getSynchMethods());
-									
-									for (MethodDeclaration md : methods) {
-										proposals.add(new CompletionProposal(md.getName() + "()", offset, 0, md.getName().length() + 1));
-									}
-								}
-
-								// Check for methods for other classes
-								else {								
-									for (FieldDeclaration fd : fields) {
-										for (VariableDeclarator vd : fd.getVariableDeclarators()) {	
-											if (vd.getVariableName().equals(currentWord)) {
-												addAllMethodsAndFields(symbolTable, fd.getType(), offset, proposals);
-											}								
-										}
-									}
-								}
-							}
-							break;
 						}
 					}
 				}
+				break;
 			}
-			return proposals.toArray(new ICompletionProposal[proposals.size()]);
 		}
-		catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}	
 	}
 
 	@Override

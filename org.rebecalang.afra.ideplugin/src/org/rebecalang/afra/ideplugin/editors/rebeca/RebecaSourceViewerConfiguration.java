@@ -49,14 +49,21 @@ public class RebecaSourceViewerConfiguration extends GeneralSourceViewerConfigur
 		return scanner;
 	}
 	
+	@Override
 	public IContentAssistant getContentAssistant(ISourceViewer sv) {
 		ContentAssistant contentAssist = new ContentAssistant();
 		IContentAssistProcessor cap = new CompletionProcessor(this.editor);
 		contentAssist.setContentAssistProcessor(cap, IDocument.DEFAULT_CONTENT_TYPE);
+		
+		// Configure content assist behavior
 		contentAssist.enableAutoActivation(true);
+		contentAssist.setAutoActivationDelay(100); // Quick activation
 		contentAssist.enableColoredLabels(true);
-		contentAssist.enableAutoInsert(true);
+		contentAssist.enableAutoInsert(false); // Don't auto-insert, let user choose
+		contentAssist.setProposalSelectorBackground(sv.getTextWidget().getDisplay().getSystemColor(org.eclipse.swt.SWT.COLOR_INFO_BACKGROUND));
+		contentAssist.setProposalSelectorForeground(sv.getTextWidget().getDisplay().getSystemColor(org.eclipse.swt.SWT.COLOR_INFO_FOREGROUND));
 		contentAssist.setInformationControlCreator(getInformationControlCreator(sv));
+		
 		return contentAssist;
    }
    public IReconciler getReconciler(ISourceViewer sourceViewer)
