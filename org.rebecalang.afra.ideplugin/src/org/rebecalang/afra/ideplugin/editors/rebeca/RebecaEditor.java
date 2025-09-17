@@ -135,14 +135,23 @@ public class RebecaEditor extends TextEditor {
      */
     private void initializeRealTimeSyntaxChecker() {
         try {
+            System.out.println("RebecaEditor: Initializing real-time syntax checker...");
+            
             // Get the file being edited
             IFile file = (IFile) getEditorInput().getAdapter(IFile.class);
+            System.out.println("RebecaEditor: File: " + (file != null ? file.getName() : "null"));
+            
             if (file != null && "rebeca".equals(file.getFileExtension())) {
+                System.out.println("RebecaEditor: Creating RealTimeSyntaxChecker for " + file.getName());
                 syntaxChecker = new RealTimeSyntaxChecker(this, file);
                 syntaxChecker.startChecking(getDocument());
+                System.out.println("RebecaEditor: Real-time syntax checker initialized successfully");
+            } else {
+                System.out.println("RebecaEditor: Not a .rebeca file, skipping syntax checker initialization");
             }
         } catch (Exception e) {
-            System.err.println("Failed to initialize real-time syntax checker: " + e.getMessage());
+            System.err.println("RebecaEditor: Failed to initialize real-time syntax checker: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
