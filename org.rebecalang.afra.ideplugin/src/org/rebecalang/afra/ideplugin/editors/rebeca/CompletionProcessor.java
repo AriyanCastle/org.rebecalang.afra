@@ -46,7 +46,11 @@ public class CompletionProcessor implements IContentAssistProcessor {
 	RebecaModelCompiler modelCompiler;
 	
 	private RebecaEditor editor;
-	private static String[] keywords = {"reactiveclass", "knownrebecs", "statevars", "msgsrv"};
+	private static String[] keywords = {
+		"reactiveclass", "knownrebecs", "statevars", "msgsrv", "main", 
+		"if", "else", "self", "true", "false", "for", "while", "break", 
+		"after", "deadline", "delay", "sender"
+	};
 	private static String[] types = {"boolean", "byte", "int", "short"};
 	
 	public CompletionProcessor(RebecaEditor editor) {
@@ -175,9 +179,7 @@ public class CompletionProcessor implements IContentAssistProcessor {
 				// Continue with basic completions only
 			}
 			
-			ICompletionProposal[] result = proposals.toArray(new ICompletionProposal[proposals.size()]);
-			System.out.println("Returning " + result.length + " completion proposals");
-			return result;
+			return proposals.toArray(new ICompletionProposal[proposals.size()]);
 			
 		} catch (Exception e) {
 			System.err.println("CompletionProcessor error: " + e.getMessage());
@@ -260,25 +262,37 @@ public class CompletionProcessor implements IContentAssistProcessor {
 	private void addMainContextCompletions(RebecaModel rebecaModel, SymbolTable symbolTable, 
 			String currentWord, int offset, ArrayList<ICompletionProposal> proposals) {
 		
-		if (rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition() == null) {
+		if (rebecaModel.getRebecaCode().getMainDeclaration() == null || 
+			rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition() == null) {
+			// If we're in main but no objects defined yet, suggest class names for instantiation
+			if (isInInstantiationContext(currentWord)) {
+				addClassNames(rebecaModel, currentWord, offset, proposals);
+			}
 			return;
 		}
 		
-		// Check for local variables						
-		for (MainRebecDefinition mrd : rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition()) {
-			if (mrd.getName() != null && mrd.getName().startsWith(currentWord)) {
-				proposals.add(new CompletionProposal(mrd.getName(), offset - currentWord.length(), 
-					currentWord.length(), mrd.getName().length()));
-			}
-		}
-
-		// Check for methods and fields 
+		// Check for methods and fields with dot notation
 		if (currentWord.length() > 0 && currentWord.charAt(currentWord.length()-1) == '.') {
 			String objectName = currentWord.substring(0, currentWord.length() - 1);
 			for (MainRebecDefinition mrd : rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition()) {
 				if (mrd.getName() != null && mrd.getName().equals(objectName)) {
 					addAllMethodsAndFields(symbolTable, mrd.getType(), offset, proposals);
 				}
+			}
+		}
+		// Regular completion (no dot)
+		else {
+			// Check for local variables (rebec instances in main)					
+			for (MainRebecDefinition mrd : rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition()) {
+				if (mrd.getName() != null && mrd.getName().toLowerCase().startsWith(currentWord.toLowerCase())) {
+					proposals.add(new CompletionProposal(mrd.getName(), offset - currentWord.length(), 
+						currentWord.length(), mrd.getName().length()));
+				}
+			}
+			
+			// Add class names for instantiation in main section
+			if (isInInstantiationContext(currentWord)) {
+				addClassNames(rebecaModel, currentWord, offset, proposals);
 			}
 		}
 	}
@@ -302,19 +316,7 @@ public class CompletionProcessor implements IContentAssistProcessor {
 					fields.addAll(rcd.getStatevars());
 				}
 				
-				// Check for statevars and knownrebecs
-				for (FieldDeclaration fd : fields) {
-					if (fd.getVariableDeclarators() != null) {
-						for (VariableDeclarator vd : fd.getVariableDeclarators()) {	
-							if (vd.getVariableName() != null && vd.getVariableName().startsWith(currentWord)) {
-								proposals.add(new CompletionProposal(vd.getVariableName(), 
-									offset - currentWord.length(), currentWord.length(), vd.getVariableName().length()));
-							}								
-						}
-					}
-				}
-				
-				// Check for method calls
+				// Check for method calls with dot notation
 				if (currentWord.length() > 0 && currentWord.charAt(currentWord.length()-1) == '.') {
 					String objectName = currentWord.substring(0, currentWord.length() - 1);
 
@@ -348,7 +350,65 @@ public class CompletionProcessor implements IContentAssistProcessor {
 						}
 					}
 				}
+				// Regular variable and method name completion (no dot)
+				else {
+					// Check for statevars and knownrebecs variables
+					for (FieldDeclaration fd : fields) {
+						if (fd.getVariableDeclarators() != null) {
+							for (VariableDeclarator vd : fd.getVariableDeclarators()) {	
+								if (vd.getVariableName() != null && vd.getVariableName().toLowerCase().startsWith(currentWord.toLowerCase())) {
+									proposals.add(new CompletionProposal(vd.getVariableName(), 
+										offset - currentWord.length(), currentWord.length(), vd.getVariableName().length()));
+								}								
+							}
+						}
+					}
+					
+					// Add method names (msgsrv methods) for completion
+					List<MethodDeclaration> methods = new ArrayList<>();
+					if (rcd.getMsgsrvs() != null) {
+						methods.addAll(rcd.getMsgsrvs());
+					}
+					if (rcd.getSynchMethods() != null) {
+						methods.addAll(rcd.getSynchMethods());
+					}
+					
+					for (MethodDeclaration md : methods) {
+						if (md.getName() != null && md.getName().toLowerCase().startsWith(currentWord.toLowerCase())) {
+							proposals.add(new CompletionProposal(md.getName(), 
+								offset - currentWord.length(), currentWord.length(), md.getName().length()));
+						}
+					}
+					
+					// Add constructor name (same as class name)
+					if (rcd.getName() != null && rcd.getName().toLowerCase().startsWith(currentWord.toLowerCase())) {
+						proposals.add(new CompletionProposal(rcd.getName(), 
+							offset - currentWord.length(), currentWord.length(), rcd.getName().length()));
+					}
+					
+					// Add class names for instantiation (only if we're in appropriate context)
+					if (isInInstantiationContext(currentWord)) {
+						addClassNames(rebecaModel, currentWord, offset, proposals);
+					}
+				}
 				break;
+			}
+		}
+	}
+	
+	private boolean isInInstantiationContext(String currentWord) {
+		// Simple heuristic: if the current word starts with uppercase, it might be a class instantiation
+		// In Rebeca, class names typically start with uppercase (Node, Customer, Agent, etc.)
+		return currentWord.length() > 0 && Character.isUpperCase(currentWord.charAt(0));
+	}
+	
+	private void addClassNames(RebecaModel rebecaModel, String currentWord, int offset, ArrayList<ICompletionProposal> proposals) {
+		if (rebecaModel.getRebecaCode().getReactiveClassDeclaration() != null) {
+			for (ReactiveClassDeclaration rcd : rebecaModel.getRebecaCode().getReactiveClassDeclaration()) {
+				if (rcd.getName() != null && rcd.getName().toLowerCase().startsWith(currentWord.toLowerCase())) {
+					proposals.add(new CompletionProposal(rcd.getName(), 
+						offset - currentWord.length(), currentWord.length(), rcd.getName().length()));
+				}
 			}
 		}
 	}
