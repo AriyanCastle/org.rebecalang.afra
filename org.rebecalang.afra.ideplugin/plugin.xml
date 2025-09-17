@@ -243,4 +243,30 @@
 	         natureId="org.rebecalang.afra.ideplugin.nature.RebecaNature">
 	   </image> 
 	</extension>-->
+
+	<!-- Commands -->
+	<extension point="org.eclipse.ui.commands">
+		<command
+			id="org.rebecalang.afra.ideplugin.formatDocument"
+			name="Format Document"
+			description="Format the current Rebeca or Property document">
+		</command>
+	</extension>
+
+	<!-- Handlers -->
+	<extension point="org.eclipse.ui.handlers">
+		<handler
+			commandId="org.rebecalang.afra.ideplugin.formatDocument"
+			class="org.rebecalang.afra.ideplugin.handler.FormatHandler">
+		</handler>
+	</extension>
+
+	<!-- Key bindings -->
+	<extension point="org.eclipse.ui.bindings">
+		<key
+			commandId="org.rebecalang.afra.ideplugin.formatDocument"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			sequence="Ctrl+Shift+F">
+		</key>
+	</extension>
 </plugin>

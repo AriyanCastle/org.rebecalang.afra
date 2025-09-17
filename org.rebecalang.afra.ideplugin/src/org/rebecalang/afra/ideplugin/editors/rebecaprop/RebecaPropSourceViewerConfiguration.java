@@ -4,11 +4,14 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
+import org.eclipse.jface.text.formatter.ContentFormatter;
+import org.eclipse.jface.text.formatter.IContentFormatter;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
 import org.rebecalang.afra.ideplugin.editors.ColorManager;
 import org.rebecalang.afra.ideplugin.editors.GeneralSourceViewerConfiguration;
 import org.rebecalang.afra.ideplugin.editors.GeneralTextAttribute;
+import org.rebecalang.afra.ideplugin.editors.formatter.PropertyFormattingStrategy;
 import org.eclipse.jface.text.reconciler.IReconciler;
 import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.jface.text.source.ISourceViewer;
@@ -66,6 +69,16 @@ public class RebecaPropSourceViewerConfiguration extends GeneralSourceViewerConf
 		contentAssist.setInformationControlCreator(getInformationControlCreator(sv));
 		
 		return contentAssist;
+	}
+
+	@Override
+	public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {
+		ContentFormatter formatter = new ContentFormatter();
+		PropertyFormattingStrategy formattingStrategy = new PropertyFormattingStrategy();
+		
+		formatter.setFormattingStrategy(formattingStrategy, IDocument.DEFAULT_CONTENT_TYPE);
+		
+		return formatter;
 	}
 
 	public IReconciler getReconciler(ISourceViewer sourceViewer)
