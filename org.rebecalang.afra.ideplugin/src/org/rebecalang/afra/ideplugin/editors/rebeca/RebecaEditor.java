@@ -14,6 +14,7 @@ import org.eclipse.jface.text.source.projection.ProjectionSupport;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.core.resources.IFile;
 import org.rebecalang.afra.ideplugin.editors.ColorManager;
 
 public class RebecaEditor extends TextEditor {
@@ -22,6 +23,7 @@ public class RebecaEditor extends TextEditor {
 
 	private ColorManager colorManager;
 	private ProjectionSupport projectionSupport;
+	private RealTimeSyntaxChecker syntaxChecker;
 
 	public static RebecaEditor current() {
 		return current;
@@ -81,6 +83,9 @@ public class RebecaEditor extends TextEditor {
 		
 		annotationModel = viewer.getProjectionAnnotationModel();
 		
+		// Initialize real-time syntax checker
+		initializeRealTimeSyntaxChecker();
+		
 //		Iterator<Annotation> annotationIterator = annotationModel.getAnnotationIterator();
 //		while(annotationIterator.hasNext()) {
 //			Annotation a = annotationIterator.next();
@@ -123,5 +128,42 @@ public class RebecaEditor extends TextEditor {
     	getSourceViewerDecorationSupport(viewer);
     	
     	return viewer;
+    }
+    
+    /**
+     * Initialize real-time syntax checker for the current file
+     */
+    private void initializeRealTimeSyntaxChecker() {
+        try {
+            // Get the file being edited
+            IFile file = (IFile) getEditorInput().getAdapter(IFile.class);
+            if (file != null && "rebeca".equals(file.getFileExtension())) {
+                syntaxChecker = new RealTimeSyntaxChecker(this, file);
+                syntaxChecker.startChecking(getDocument());
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to initialize real-time syntax checker: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    public void dispose() {
+        // Clean up syntax checker
+        if (syntaxChecker != null) {
+            try {
+                syntaxChecker.stopChecking(getDocument());
+                syntaxChecker.dispose();
+                syntaxChecker = null;
+            } catch (Exception e) {
+                System.err.println("Error disposing syntax checker: " + e.getMessage());
+            }
+        }
+        
+        // Clean up color manager
+        if (colorManager != null) {
+            colorManager.dispose();
+        }
+        
+        super.dispose();
     }
 }
