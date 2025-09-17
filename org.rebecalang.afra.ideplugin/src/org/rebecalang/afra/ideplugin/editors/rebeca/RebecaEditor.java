@@ -51,6 +51,20 @@ public class RebecaEditor extends TextEditor {
 		return colorManager;
 	}
 	
+	/**
+	 * Public accessor for the source viewer (exposes protected method)
+	 */
+	public ISourceViewer getPublicSourceViewer() {
+		return getSourceViewer();
+	}
+	
+	/**
+	 * Public accessor for the source viewer configuration (exposes protected method)
+	 */
+	public RebecaSourceViewerConfiguration getPublicSourceViewerConfiguration() {
+		return (RebecaSourceViewerConfiguration) getSourceViewerConfiguration();
+	}
+	
     /* (non-Javadoc)
      * @see org.eclipse.ui.IWorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
      */

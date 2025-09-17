@@ -42,9 +42,9 @@ public class FormatHandler extends AbstractHandler {
     
     private void formatRebecaEditor(RebecaEditor editor) {
         try {
-            ISourceViewer sourceViewer = editor.getSourceViewer();
+            ISourceViewer sourceViewer = editor.getPublicSourceViewer();
             if (sourceViewer != null) {
-                IContentFormatter formatter = editor.getSourceViewerConfiguration()
+                IContentFormatter formatter = editor.getPublicSourceViewerConfiguration()
                         .getContentFormatter(sourceViewer);
                 
                 if (formatter != null) {
@@ -70,9 +70,9 @@ public class FormatHandler extends AbstractHandler {
     
     private void formatPropertyEditor(RebecaPropEditor editor) {
         try {
-            ISourceViewer sourceViewer = editor.getSourceViewer();
+            ISourceViewer sourceViewer = editor.getPublicSourceViewer();
             if (sourceViewer != null) {
-                IContentFormatter formatter = editor.getSourceViewerConfiguration()
+                IContentFormatter formatter = editor.getPublicSourceViewerConfiguration()
                         .getContentFormatter(sourceViewer);
                 
                 if (formatter != null) {

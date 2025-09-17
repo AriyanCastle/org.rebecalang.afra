@@ -49,6 +49,20 @@ public class RebecaPropEditor extends TextEditor {
 	public ColorManager getColorManager() {
 		return colorManager;
 	}
+	
+	/**
+	 * Public accessor for the source viewer (exposes protected method)
+	 */
+	public ISourceViewer getPublicSourceViewer() {
+		return getSourceViewer();
+	}
+	
+	/**
+	 * Public accessor for the source viewer configuration (exposes protected method)
+	 */
+	public RebecaPropSourceViewerConfiguration getPublicSourceViewerConfiguration() {
+		return (RebecaPropSourceViewerConfiguration) getSourceViewerConfiguration();
+	}
 
 	public void createPartControl(Composite parent)
     {

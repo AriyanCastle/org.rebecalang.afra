@@ -1,0 +1,22 @@
+FORMATHANDLER.JAVA DOCUMENTATION
+=================================
+
+PURPOSE:
+Eclipse command handler that provides document formatting functionality for both Rebeca and Property files.
+
+ECLIPSE VS AFRA:
+- Uses Eclipse command framework (AbstractHandler)
+- Afra-specific implementation for Rebeca and Property file formatting
+
+KEY METHODS:
+- execute(ExecutionEvent): Main command execution, determines file type and calls appropriate formatter
+- formatRebecaEditor(RebecaEditor): Formats .rebeca files using RebecaFormattingStrategy
+- formatPropertyEditor(RebecaPropEditor): Formats .property files using PropertyFormattingStrategy
+
+IMPORTANT NOTES:
+- Triggered by Ctrl+Shift+F keyboard shortcut
+- Supports both selection formatting and full document formatting
+- Automatically detects file type (Rebeca vs Property)
+- Uses public accessor methods to access protected editor functionality
+- Integrates with Eclipse's formatting framework
+- Essential for code formatting workflow
