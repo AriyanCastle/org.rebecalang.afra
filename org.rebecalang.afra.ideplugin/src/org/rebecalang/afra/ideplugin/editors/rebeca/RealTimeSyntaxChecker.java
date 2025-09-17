@@ -282,19 +282,17 @@ public class RealTimeSyntaxChecker implements IDocumentListener {
                 .retrieveCompationExtension(file.getProject());
             System.out.println("RealTimeSyntaxChecker: Retrieved extensions from project: " + extensions);
             
-            // If empty, add core rebeca as minimum requirement
+            // Empty extensions set is valid for core Rebeca - don't add anything
             if (extensions.isEmpty()) {
-                System.out.println("RealTimeSyntaxChecker: Extensions empty, adding CORE_REBECA");
-                extensions.add(CompilerExtension.CORE_REBECA);
+                System.out.println("RealTimeSyntaxChecker: Extensions empty, using core Rebeca (no extensions needed)");
             }
             
             return extensions;
         } catch (Exception e) {
             System.err.println("RealTimeSyntaxChecker: Failed to get extensions: " + e.getMessage());
-            // Fallback to minimal extensions
+            // Fallback to empty extensions set (core Rebeca)
             Set<CompilerExtension> extensions = new java.util.HashSet<>();
-            extensions.add(CompilerExtension.CORE_REBECA);
-            System.out.println("RealTimeSyntaxChecker: Using fallback extensions: " + extensions);
+            System.out.println("RealTimeSyntaxChecker: Using fallback empty extensions (core Rebeca)");
             return extensions;
         }
     }
