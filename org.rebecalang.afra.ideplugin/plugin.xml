@@ -251,6 +251,11 @@
 			name="Format Document"
 			description="Format the current Rebeca or Property document">
 		</command>
+		<command
+			id="org.rebecalang.afra.ideplugin.renameSymbol"
+			name="Rename Symbol"
+			description="Rename a Rebeca symbol (class, method, variable, instance)">
+		</command>
 	</extension>
 
 	<!-- Handlers -->
@@ -258,6 +263,10 @@
 		<handler
 			commandId="org.rebecalang.afra.ideplugin.formatDocument"
 			class="org.rebecalang.afra.ideplugin.handler.FormatHandler">
+		</handler>
+		<handler
+			commandId="org.rebecalang.afra.ideplugin.renameSymbol"
+			class="org.rebecalang.afra.ideplugin.refactoring.RebecaRenameAction">
 		</handler>
 	</extension>
 
@@ -267,6 +276,11 @@
 			commandId="org.rebecalang.afra.ideplugin.formatDocument"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
 			sequence="Ctrl+Shift+F">
+		</key>
+		<key
+			commandId="org.rebecalang.afra.ideplugin.renameSymbol"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			sequence="Ctrl+Shift+R">
 		</key>
 	</extension>
 </plugin>
