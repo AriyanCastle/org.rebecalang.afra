@@ -58,35 +58,29 @@ public class ImprovedRebecaFormatter implements IAfraFormatter {
     }
     
     private String fixIndentationPreservingStructure(String content) {
-        StringBuilder result = new StringBuilder();
         String[] lines = content.split("\n");
-        int indentLevel = 0;
         
-        for (String line : lines) {
-            String trimmed = line.trim();
+        // First pass: Calculate indentation levels ignoring comments completely
+        int[] indentLevels = calculateIndentationLevels(lines);
+        
+        // Second pass: Apply indentation and formatting
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < lines.length; i++) {
+            String trimmed = lines[i].trim();
             
             if (trimmed.isEmpty()) {
                 result.append(NEW_LINE);
                 continue;
             }
             
-            // Calculate the correct indentation level for this line
-            int currentLineIndent = indentLevel;
-            
-            // Adjust indentation BEFORE processing the line for closing braces
-            if (trimmed.startsWith("}")) {
-                currentLineIndent = Math.max(0, indentLevel - 1);
-                indentLevel = currentLineIndent; // Update the running indent level
-            }
-            
             // Add proper indentation for all lines (including comments)
-            for (int i = 0; i < currentLineIndent; i++) {
+            for (int j = 0; j < indentLevels[i]; j++) {
                 result.append(INDENT);
             }
             
-            // Apply minimal formatting (preserve comments as-is)
+            // Apply formatting based on line type
             String formattedLine = trimmed;
-            if (trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*")) {
+            if (isComment(trimmed)) {
                 // For comments, just use the trimmed content without additional formatting
                 formattedLine = trimmed;
             } else {
@@ -95,16 +89,45 @@ public class ImprovedRebecaFormatter implements IAfraFormatter {
             }
             
             result.append(formattedLine);
-            
-            // Adjust indentation AFTER processing the line for opening braces
-            if (trimmed.endsWith("{")) {
-                indentLevel++;
-            }
-            
             result.append(NEW_LINE);
         }
         
         return result.toString().replaceAll("\n+$", "\n");
+    }
+    
+    private int[] calculateIndentationLevels(String[] lines) {
+        int[] indentLevels = new int[lines.length];
+        int currentIndentLevel = 0;
+        
+        for (int i = 0; i < lines.length; i++) {
+            String trimmed = lines[i].trim();
+            
+            if (trimmed.isEmpty() || isComment(trimmed)) {
+                // Comments and empty lines inherit the current indentation level
+                indentLevels[i] = currentIndentLevel;
+                continue;
+            }
+            
+            // Adjust for closing braces BEFORE setting the indentation for this line
+            if (trimmed.startsWith("}")) {
+                currentIndentLevel = Math.max(0, currentIndentLevel - 1);
+            }
+            
+            // Set the indentation level for this line
+            indentLevels[i] = currentIndentLevel;
+            
+            // Adjust for opening braces AFTER setting the indentation for this line
+            if (trimmed.endsWith("{")) {
+                currentIndentLevel++;
+            }
+        }
+        
+        return indentLevels;
+    }
+    
+    private boolean isComment(String trimmed) {
+        return trimmed.startsWith("//") || trimmed.startsWith("/*") || 
+               trimmed.startsWith("*") || trimmed.endsWith("*/");
     }
     
     private String applyMinimalFormatting(String line) {
