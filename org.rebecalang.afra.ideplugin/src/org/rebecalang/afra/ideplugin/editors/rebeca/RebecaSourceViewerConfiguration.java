@@ -56,7 +56,7 @@ public class RebecaSourceViewerConfiguration extends GeneralSourceViewerConfigur
 	@Override
 	public IContentAssistant getContentAssistant(ISourceViewer sv) {
 		ContentAssistant contentAssist = new ContentAssistant();
-		IContentAssistProcessor cap = new CompletionProcessor(this.editor);
+		IContentAssistProcessor cap = new RebecaContextAwareCompletionProcessor(this.editor);
 		contentAssist.setContentAssistProcessor(cap, IDocument.DEFAULT_CONTENT_TYPE);
 		
 		// Configure content assist behavior
