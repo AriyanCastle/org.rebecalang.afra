@@ -12,9 +12,14 @@ import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
 import org.eclipse.jface.text.source.projection.ProjectionSupport;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.rebecalang.afra.ideplugin.editors.ColorManager;
+import org.rebecalang.afra.ideplugin.editors.WordHighlightManager;
 
 public class RebecaEditor extends TextEditor {
 
@@ -22,6 +27,7 @@ public class RebecaEditor extends TextEditor {
 
 	private ColorManager colorManager;
 	private ProjectionSupport projectionSupport;
+	private WordHighlightManager wordHighlightManager;
 
 	public static RebecaEditor current() {
 		return current;
@@ -67,6 +73,10 @@ public class RebecaEditor extends TextEditor {
 		
 		annotationModel = viewer.getProjectionAnnotationModel();
 		
+		// Initialize word highlighting
+		wordHighlightManager = new WordHighlightManager(viewer);
+		setupWordHighlighting(viewer);
+		
 //		Iterator<Annotation> annotationIterator = annotationModel.getAnnotationIterator();
 //		while(annotationIterator.hasNext()) {
 //			Annotation a = annotationIterator.next();
@@ -109,5 +119,72 @@ public class RebecaEditor extends TextEditor {
     	getSourceViewerDecorationSupport(viewer);
     	
     	return viewer;
+    }
+    
+    /**
+     * Sets up word highlighting functionality by adding mouse listeners to the text widget.
+     */
+    private void setupWordHighlighting(ISourceViewer viewer) {
+    	if (viewer != null && viewer.getTextWidget() != null) {
+    		Control textWidget = viewer.getTextWidget();
+    		
+    		// Add mouse listener for word highlighting on click
+    		textWidget.addMouseListener(new MouseListener() {
+    			@Override
+    			public void mouseUp(MouseEvent e) {
+    				// Only handle left mouse button clicks
+    				if (e.button == 1) {
+    					handleWordHighlighting(viewer, e);
+    				}
+    			}
+    			
+    			@Override
+    			public void mouseDown(MouseEvent e) {
+    				// Not used
+    			}
+    			
+    			@Override
+    			public void mouseDoubleClick(MouseEvent e) {
+    				// Not used - let the default double-click behavior handle word selection
+    			}
+    		});
+    	}
+    }
+    
+    /**
+     * Handles word highlighting when the user clicks in the editor.
+     */
+    private void handleWordHighlighting(ISourceViewer viewer, MouseEvent e) {
+    	if (wordHighlightManager == null) {
+    		return;
+    	}
+    	
+    	try {
+    		// Convert mouse coordinates to document offset
+    		Point point = new Point(e.x, e.y);
+    		int offset = viewer.getTextWidget().getOffsetAtLocation(point);
+    		
+    		// Highlight word at this offset
+    		wordHighlightManager.highlightWordAt(offset);
+    		
+    	} catch (IllegalArgumentException ex) {
+    		// Click was outside text area, clear highlights
+    		wordHighlightManager.clearHighlights();
+    	} catch (Exception ex) {
+    		// Handle any other exceptions silently
+    		System.err.println("Error in word highlighting: " + ex.getMessage());
+    	}
+    }
+    
+    /**
+     * Disposes the editor and cleans up resources.
+     */
+    @Override
+    public void dispose() {
+    	if (wordHighlightManager != null) {
+    		wordHighlightManager.dispose();
+    		wordHighlightManager = null;
+    	}
+    	super.dispose();
     }
 }
