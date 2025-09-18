@@ -22,5 +22,11 @@ public class RebecaPropPreferenceInitializer extends GeneralPreferenceInitialize
 		setDefaultAttr(preferences, "RebecaProp.String", "00,00,128");
 		setDefaultAttr(preferences, "RebecaProp.Default", "00,00,00");
 		setDefault(preferences, "RebecaProp.KeyWord", "128,00,128", true);
+		
+		// Enhanced property file syntax highlighting preferences
+		setDefaultAttr(preferences, "RebecaProp.TemporalOperator", "255,140,00");    // Orange for temporal operators (G, F, etc.)
+		setDefaultAttr(preferences, "RebecaProp.PropertyLiteral", "30,144,255");     // Medium blue for boolean literals and common properties
+		
+		System.out.println("[RebecaProp Preferences] Enhanced property file color scheme initialized");
 	}
 }

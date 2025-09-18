@@ -12,16 +12,26 @@ import org.eclipse.jface.text.rules.WordRule;
 import org.rebecalang.afra.ideplugin.editors.ColorManager;
 
 public class RebecaPropScanner extends RuleBasedScanner {
-	private static final String[] rebecaPropWords = {"define", "CTL", "LTL", "property", "true", "false", "Assertion"};
+	// Property file keywords and operators
+	private static final String[] rebecaPropKeywords = {"property", "define", "Assertion", "LTL", "CTL"};
+	
+	// Temporal logic operators (common in property specifications)
+	private static final String[] temporalOperators = {"G", "F", "X", "U", "R"};
+	
+	// Boolean literals and common property keywords
+	private static final String[] propLiterals = {"true", "false", "Safety"};
 
 	public RebecaPropScanner(ColorManager manager)
 	{
-		IToken keyword = new Token(RebecaPropTextAttribute.KEYWORD
-				.getTextAttribute(manager));
-		IToken other = new Token(RebecaPropTextAttribute.DEFAULT
-				.getTextAttribute(manager));
+		System.out.println("[RebecaProp Scanner] Initializing enhanced property file syntax highlighting...");
+		
+		// Create tokens for different categories
+		IToken keywordToken = new Token(RebecaPropTextAttribute.KEYWORD.getTextAttribute(manager));
+		IToken temporalOpToken = new Token(RebecaPropTextAttribute.TEMPORAL_OPERATOR.getTextAttribute(manager));
+		IToken literalToken = new Token(RebecaPropTextAttribute.PROPERTY_LITERAL.getTextAttribute(manager));
+		IToken defaultToken = new Token(RebecaPropTextAttribute.DEFAULT.getTextAttribute(manager));
 	
-		List<WordRule> rules = new ArrayList<WordRule>();
+		List<IRule> rules = new ArrayList<IRule>();
 	
 		WordRule wordRule = new WordRule(new IWordDetector()
 		{
@@ -33,14 +43,35 @@ public class RebecaPropScanner extends RuleBasedScanner {
 			{
 				return Character.isJavaIdentifierStart(character);
 			}
-		}, other);
+		}, defaultToken);
 	
-		for (int i = 0; i < rebecaPropWords.length; i++)
-			wordRule.addWord(rebecaPropWords[i], keyword);
+		// Add property file keywords (purple)
+		for (String keyword : rebecaPropKeywords) {
+			wordRule.addWord(keyword, keywordToken);
+			System.out.println("[RebecaProp Scanner] Added keyword: " + keyword);
+		}
+		
+		// Add temporal logic operators (orange)
+		for (String operator : temporalOperators) {
+			wordRule.addWord(operator, temporalOpToken);
+			System.out.println("[RebecaProp Scanner] Added temporal operator: " + operator);
+		}
+		
+		// Add boolean literals and common property types (medium blue)
+		for (String literal : propLiterals) {
+			wordRule.addWord(literal, literalToken);
+			System.out.println("[RebecaProp Scanner] Added property literal: " + literal);
+		}
+		
 		rules.add(wordRule);
 	
 		IRule[] result = new IRule[rules.size()];
 		rules.toArray(result);
 		setRules(result);
+		
+		System.out.println("[RebecaProp Scanner] Enhanced property scanner initialized with " + rules.size() + " rules");
+		System.out.println("[RebecaProp Scanner] Keywords: " + rebecaPropKeywords.length + " (purple)");
+		System.out.println("[RebecaProp Scanner] Temporal operators: " + temporalOperators.length + " (orange)");
+		System.out.println("[RebecaProp Scanner] Property literals: " + propLiterals.length + " (medium blue)");
 	}
 }
