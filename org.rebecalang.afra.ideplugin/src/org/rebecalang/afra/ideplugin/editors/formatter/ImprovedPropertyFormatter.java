@@ -67,21 +67,31 @@ public class ImprovedPropertyFormatter implements IAfraFormatter {
                 continue;
             }
             
-            // Decrease indent for closing braces
+            // Calculate the correct indentation level for this line
+            int currentLineIndent = indentLevel;
+            
+            // Adjust indentation BEFORE processing the line for closing braces
             if (trimmed.startsWith("}")) {
-                indentLevel = Math.max(0, indentLevel - 1);
+                currentLineIndent = Math.max(0, indentLevel - 1);
+                indentLevel = currentLineIndent; // Update the running indent level
             }
             
             // Add indentation using tabs
-            for (int i = 0; i < indentLevel; i++) {
+            for (int i = 0; i < currentLineIndent; i++) {
                 result.append(INDENT);
             }
             
-            // Apply only essential formatting
-            trimmed = applyEssentialFormatting(trimmed);
-            result.append(trimmed);
+            // Apply only essential formatting (but preserve comments as-is)
+            if (trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*")) {
+                // For comments, just use the trimmed content without additional formatting
+                result.append(trimmed);
+            } else {
+                // For non-comment lines, apply essential formatting
+                trimmed = applyEssentialFormatting(trimmed);
+                result.append(trimmed);
+            }
             
-            // Increase indent for opening braces
+            // Adjust indentation AFTER processing the line for opening braces
             if (trimmed.endsWith("{")) {
                 indentLevel++;
             }

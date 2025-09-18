@@ -70,25 +70,33 @@ public class ImprovedRebecaFormatter implements IAfraFormatter {
                 continue;
             }
             
-            // Decrease indent for closing braces
+            // Calculate the correct indentation level for this line
+            int currentLineIndent = indentLevel;
+            
+            // Adjust indentation BEFORE processing the line for closing braces
             if (trimmed.startsWith("}")) {
-                indentLevel = Math.max(0, indentLevel - 1);
+                currentLineIndent = Math.max(0, indentLevel - 1);
+                indentLevel = currentLineIndent; // Update the running indent level
             }
             
             // Add proper indentation for all lines (including comments)
-            for (int i = 0; i < indentLevel; i++) {
+            for (int i = 0; i < currentLineIndent; i++) {
                 result.append(INDENT);
             }
             
-            // Apply minimal formatting only to non-comment lines
+            // Apply minimal formatting (preserve comments as-is)
             String formattedLine = trimmed;
-            if (!trimmed.startsWith("/*") && !trimmed.startsWith("//")) {
+            if (trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*")) {
+                // For comments, just use the trimmed content without additional formatting
+                formattedLine = trimmed;
+            } else {
+                // For non-comment lines, apply minimal formatting
                 formattedLine = applyMinimalFormatting(trimmed);
             }
             
             result.append(formattedLine);
             
-            // Increase indent for opening braces
+            // Adjust indentation AFTER processing the line for opening braces
             if (trimmed.endsWith("{")) {
                 indentLevel++;
             }
