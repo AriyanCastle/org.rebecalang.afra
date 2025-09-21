@@ -1,7 +1,7 @@
 reactiveclass Philosopher(3) {
-	/*
+	/**
 	Here is class documentation
-	*/
+	**/
 	knownrebecs {
 		Chopstick chpL, chpR;
 	}
@@ -17,7 +17,7 @@ reactiveclass Philosopher(3) {
 	}
 
 	msgsrv arrive() {
-		/* here is a method documentation */
+		/** here is a method documentation **/
 		chpL.request();
 	}
 	msgsrv permit() {
