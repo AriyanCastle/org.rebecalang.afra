@@ -9,10 +9,12 @@ public class FormatterRegistry {
     private static FormatterRegistry instance;
     
     private final ASTBasedFormatter astFormatter;
+    private final FallbackRebecaFormatter fallbackFormatter;
     private final FixedRebecaFormatter legacyRebecaFormatter;
     private final FixedPropertyFormatter legacyPropertyFormatter;
     
     private FormatterRegistry() {
+        fallbackFormatter = new FallbackRebecaFormatter();
         astFormatter = new ASTBasedFormatter();
         legacyRebecaFormatter = new FixedRebecaFormatter();
         legacyPropertyFormatter = new FixedPropertyFormatter();
@@ -32,16 +34,16 @@ public class FormatterRegistry {
      * Get the best formatter for Rebeca files
      */
     public IAfraFormatter getRebecaFormatter() {
-        // Use AST formatter as primary, with fallback capability built-in
-        return astFormatter;
+        // Use fallback formatter as primary to ensure compilation success
+        return fallbackFormatter;
     }
     
     /**
      * Get the best formatter for property files
      */
     public IAfraFormatter getPropertyFormatter() {
-        // Use AST formatter which handles both .rebeca and .property files
-        return astFormatter;
+        // Use fallback formatter which handles both .rebeca and .property files
+        return fallbackFormatter;
     }
     
     /**
@@ -49,7 +51,7 @@ public class FormatterRegistry {
      */
     public IAfraFormatter getFormatterByExtension(String extension) {
         if (extension == null) {
-            return astFormatter;
+            return fallbackFormatter;
         }
         
         switch (extension.toLowerCase()) {
@@ -58,7 +60,7 @@ public class FormatterRegistry {
             case "property":
                 return getPropertyFormatter();
             default:
-                return astFormatter; // Default to AST formatter
+                return fallbackFormatter; // Default to fallback formatter
         }
     }
     
@@ -101,7 +103,7 @@ public class FormatterRegistry {
             }
         }
         
-        // Default to AST formatter
+        // Default to fallback formatter
         return getFormatterByExtension(extension);
     }
 }

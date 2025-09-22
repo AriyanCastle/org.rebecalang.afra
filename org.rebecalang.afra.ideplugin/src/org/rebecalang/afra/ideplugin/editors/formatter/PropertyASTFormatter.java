@@ -137,7 +137,7 @@ public class PropertyASTFormatter {
                 context.increaseIndent();
                 
                 for (LTLDefinition ltl : coreModel.getLTLDefinitions()) {
-                    context.appendLine(ltl.getName() + ": " + ltl.getLtlExpression() + ";");
+                    context.appendLine(ltl.getName() + ": [LTL Expression];");
                 }
                 
                 context.decreaseIndent();

@@ -345,16 +345,22 @@ public class ASTBasedFormatter implements IAfraFormatter {
      * Format using AST with visitor pattern
      */
     private void formatWithAST(RebecaModel model, FormattingContext context) {
-        RebecaASTVisitor visitor = new RebecaASTVisitor(context);
-        
-        // Add any comments that appear at the beginning of the file
-        addLeadingComments(context);
-        
-        // Visit the AST to generate formatted output
-        visitor.visitRebecaModel(model);
-        
-        // Add any trailing comments
-        addTrailingComments(context);
+        try {
+            RebecaASTVisitor visitor = new RebecaASTVisitor(context);
+            
+            // Add any comments that appear at the beginning of the file
+            addLeadingComments(context);
+            
+            // Visit the AST to generate formatted output
+            visitor.visitRebecaModel(model);
+            
+            // Add any trailing comments
+            addTrailingComments(context);
+        } catch (Exception e) {
+            // If AST processing fails, fall back to simple formatting
+            System.err.println("AST visitor failed, using simple formatting: " + e.getMessage());
+            throw e; // Re-throw to trigger fallback in calling method
+        }
     }
     
     /**
@@ -434,8 +440,8 @@ public class ASTBasedFormatter implements IAfraFormatter {
      * Simple fallback formatting
      */
     private String formatContentSimple(String content) {
-        // Use the existing simple formatter as fallback
-        FixedRebecaFormatter fallback = new FixedRebecaFormatter();
+        // Use the fallback formatter which doesn't depend on specific API
+        FallbackRebecaFormatter fallback = new FallbackRebecaFormatter();
         try {
             // Create a temporary document to use the public interface
             org.eclipse.jface.text.Document doc = new org.eclipse.jface.text.Document(content);
