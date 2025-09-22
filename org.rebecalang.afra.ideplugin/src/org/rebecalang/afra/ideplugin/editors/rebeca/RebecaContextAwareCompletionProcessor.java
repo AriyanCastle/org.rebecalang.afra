@@ -596,9 +596,8 @@ public class RebecaContextAwareCompletionProcessor implements IContentAssistProc
 			ArrayList<ICompletionProposal> proposals) {
 		if (method.getFormalParameters() != null) {
 			for (FormalParameterDeclaration param : method.getFormalParameters()) {
-				if (param.getVariableDeclarator() != null && 
-					param.getVariableDeclarator().getVariableName() != null) {
-					String paramName = param.getVariableDeclarator().getVariableName();
+				if (param.getName() != null) {
+					String paramName = param.getName();
 					if (paramName.toLowerCase().startsWith(context.partialText.toLowerCase())) {
 						proposals.add(new CompletionProposal(paramName, 
 							context.replacementOffset, context.replacementLength, paramName.length()));
