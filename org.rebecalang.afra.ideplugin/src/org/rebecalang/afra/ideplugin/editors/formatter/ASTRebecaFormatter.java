@@ -257,20 +257,8 @@ public class ASTRebecaFormatter implements IAfraFormatter {
     }
     
     private void formatRebecaModel(RebecaModel model, StringBuilder sb, int indentLevel) {
-        if (model.getPackageDeclaration() != null) {
-            appendIndent(sb, indentLevel);
-            sb.append("package ").append(model.getPackageDeclaration().getPackageName()).append(";");
-            sb.append(NEW_LINE).append(NEW_LINE);
-        }
-        
-        if (model.getImportDeclaration() != null && !model.getImportDeclaration().isEmpty()) {
-            for (var importDecl : model.getImportDeclaration()) {
-                appendIndent(sb, indentLevel);
-                sb.append("import ").append(importDecl.getPackageName()).append(";");
-                sb.append(NEW_LINE);
-            }
-            sb.append(NEW_LINE);
-        }
+        // Rebeca language doesn't typically use package declarations or imports
+        // so we skip formatting those and go directly to the code
         
         if (model.getRebecaCode() != null) {
             formatRebecaCode(model.getRebecaCode(), sb, indentLevel);
@@ -362,7 +350,7 @@ public class ASTRebecaFormatter implements IAfraFormatter {
                 sb.append(var.getVariableName());
                 if (var.getVariableInitializer() != null) {
                     sb.append(" = ");
-                    // Format variable initializer - simplified
+                    // Format variable initializer - could be improved to handle expressions
                     sb.append("/* initializer */");
                 }
             }
@@ -461,8 +449,62 @@ public class ASTRebecaFormatter implements IAfraFormatter {
     
     private void formatStatement(Statement stmt, StringBuilder sb, int indentLevel) {
         // Simplified statement formatting - can be expanded
+        //appendIndent(sb, indentLevel);
+        //sb.append("/* statement */;").append(NEW_LINE);
+        
+        if (stmt == null) {
+            return;
+        }
+        
         appendIndent(sb, indentLevel);
-        sb.append("/* statement */;").append(NEW_LINE);
+        
+        // Format based on statement type
+        String className = stmt.getClass().getSimpleName();
+        
+        switch (className) {
+            case "ConditionalStatement":
+                sb.append("if (/* condition */) {").append(NEW_LINE);
+                // Could format nested statements here
+                appendIndent(sb, indentLevel);
+                sb.append("}").append(NEW_LINE);
+                break;
+                
+            case "WhileStatement":
+                sb.append("while (/* condition */) {").append(NEW_LINE);
+                // Could format nested statements here
+                appendIndent(sb, indentLevel);
+                sb.append("}").append(NEW_LINE);
+                break;
+                
+            case "ForStatement":
+                sb.append("for (/* init */; /* condition */; /* update */) {").append(NEW_LINE);
+                // Could format nested statements here
+                appendIndent(sb, indentLevel);
+                sb.append("}").append(NEW_LINE);
+                break;
+                
+            case "ReturnStatement":
+                sb.append("return /* value */;").append(NEW_LINE);
+                break;
+                
+            case "BreakStatement":
+                sb.append("break;").append(NEW_LINE);
+                break;
+                
+            case "ContinueStatement":
+                sb.append("continue;").append(NEW_LINE);
+                break;
+                
+            case "BlockStatement":
+                // Block statements are handled separately
+                formatBlockStatement((BlockStatement) stmt, sb, indentLevel);
+                return; // Don't add extra newline
+                
+            default:
+                // For other statement types, use a generic placeholder
+                sb.append("/* statement: ").append(className).append(" */;").append(NEW_LINE);
+                break;
+        }
     }
     
     private void formatMainDeclaration(MainDeclaration main, StringBuilder sb, int indentLevel) {
