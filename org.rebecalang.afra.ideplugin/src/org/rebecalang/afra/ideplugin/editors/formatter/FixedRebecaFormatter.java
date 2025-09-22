@@ -9,8 +9,8 @@ import org.eclipse.jface.text.IRegion;
  */
 public class FixedRebecaFormatter implements IAfraFormatter {
     
-    private static final String INDENT = "\t";
     private static final String NEW_LINE = System.getProperty("line.separator");
+    private String lastIndent = "\t";
     
     @Override
     public String format(IDocument document) {
@@ -36,56 +36,18 @@ public class FixedRebecaFormatter implements IAfraFormatter {
     
     @Override
     public String getIndentString() {
-        return INDENT;
+        return lastIndent;
     }
     
     private String formatContent(String content) {
         if (content == null || content.trim().isEmpty()) {
             return content;
         }
-        
-        // Normalize line endings and remove trailing spaces
-        content = content.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
-        content = content.replaceAll("[ \t]+\n", "\n");
-        
-        String[] lines = content.split("\n");
-        StringBuilder result = new StringBuilder();
-        int braceLevel = 0;
-        
-        for (String line : lines) {
-            String trimmed = line.trim();
-            
-            // Handle empty lines
-            if (trimmed.isEmpty()) {
-                result.append(NEW_LINE);
-                continue;
-            }
-            
-            // Calculate indentation level for this line
-            int currentIndent = braceLevel;
-            
-            // Closing braces decrease the indentation level for themselves
-            if (trimmed.startsWith("}")) {
-                currentIndent = Math.max(0, braceLevel - 1);
-                braceLevel = currentIndent; // Update for next lines
-            }
-            
-            // Apply indentation
-            for (int i = 0; i < currentIndent; i++) {
-                result.append(INDENT);
-            }
-            
-            // Add the line content
-            result.append(trimmed);
-            result.append(NEW_LINE);
-            
-            // Opening braces increase indentation level for subsequent lines
-            if (trimmed.endsWith("{")) {
-                braceLevel++;
-            }
-        }
-        
-        return result.toString().replaceAll("\n+$", "\n");
+        // Use robust token-based formatter engine
+        RebecaFormatterEngine engine = new RebecaFormatterEngine(lastIndent, NEW_LINE);
+        String result = engine.format(content);
+        lastIndent = engine.getIndentUnit();
+        return result;
     }
     
 }
