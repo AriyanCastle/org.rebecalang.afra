@@ -13,6 +13,7 @@ public class RebecaFormatter implements IAfraFormatter {
     public String format(IDocument document) {
         try {
             String content = document.get();
+            System.out.println("RebecaFormatter.format(IDocument document): " + content);
             return FormatterUtils.formatContent(content);
         } catch (Exception e) {
             e.printStackTrace();
@@ -24,6 +25,7 @@ public class RebecaFormatter implements IAfraFormatter {
     public String format(IDocument document, IRegion region) {
         try {
             String content = document.get(region.getOffset(), region.getLength());
+            System.out.println("RebecaFormatter.format(IDocument document, IRegion region): " + content);
             return FormatterUtils.formatContent(content);
         } catch (BadLocationException e) {
             e.printStackTrace();
