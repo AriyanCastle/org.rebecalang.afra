@@ -192,14 +192,21 @@ public class RebecaRenameAction extends AbstractHandler {
                 return RebecaRefactoringParticipant.SymbolType.CLASS_NAME;
             }
             
+            // Check if it's in knownrebecs section
+            if (isInSection(content, offset, "knownrebecs")) {
+                // If it's at the beginning of line and followed by variable names, it's a class name
+                if (beforeWord.trim().isEmpty() && afterWord.matches("\\s+[\\w\\s,]+;.*")) {
+                    // Pattern: ClassName varName1, varName2, ...;
+                    return RebecaRefactoringParticipant.SymbolType.CLASS_NAME;
+                } else {
+                    // Otherwise it's an instance name
+                    return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
+                }
+            }
+            
             // Check if it's in statevars section (variable declaration)
             if (isInSection(content, offset, "statevars")) {
                 return RebecaRefactoringParticipant.SymbolType.VARIABLE_NAME;
-            }
-            
-            // Check if it's in knownrebecs section (instance declaration)
-            if (isInSection(content, offset, "knownrebecs")) {
-                return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
             }
             
             // Check for property definition in .property files

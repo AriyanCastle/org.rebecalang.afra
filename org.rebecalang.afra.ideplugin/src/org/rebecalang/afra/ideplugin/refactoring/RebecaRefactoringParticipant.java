@@ -242,8 +242,8 @@ public class RebecaRefactoringParticipant {
                                                SymbolType.CLASS_NAME, new SymbolContext(null, null, false)));
         }
         
-        // Pattern for class usage in knownrebecs: ClassName varName
-        Pattern knownrebecPattern = Pattern.compile("\\b(" + Pattern.quote(className) + ")\\s+\\w+\\s*[,;]");
+        // Pattern for class usage in knownrebecs: ClassName varName1, varName2, ...;
+        Pattern knownrebecPattern = Pattern.compile("\\b(" + Pattern.quote(className) + ")\\s+[\\w\\s,]+;");
         matcher = knownrebecPattern.matcher(content);
         while (matcher.find()) {
             int offset = matcher.start(1);
