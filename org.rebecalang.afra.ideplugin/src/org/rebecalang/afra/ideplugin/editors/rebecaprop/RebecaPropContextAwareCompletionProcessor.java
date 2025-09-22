@@ -105,6 +105,8 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 			
 			// Parse the define line if we're in define context
 			if (context.isDefineContext && currentLine.contains("=")) {
+				// Set initial replacement offset to current cursor position
+				context.replacementOffset = offset;
 				parseDefineLine(currentLine, offset - lineOffset, context);
 			} else {
 				// Regular context parsing
@@ -118,6 +120,20 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 			context.isDefineContext = false;
 			context.replacementOffset = offset;
 			context.replacementLength = 0;
+		}
+		
+		// Validate and fix replacement offset and length
+		if (context.replacementOffset < 0) {
+			context.replacementOffset = 0;
+		}
+		if (context.replacementOffset > document.getLength()) {
+			context.replacementOffset = document.getLength();
+		}
+		if (context.replacementLength < 0) {
+			context.replacementLength = 0;
+		}
+		if (context.replacementOffset + context.replacementLength > document.getLength()) {
+			context.replacementLength = document.getLength() - context.replacementOffset;
 		}
 		
 		return context;
@@ -174,28 +190,54 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 		
 		if (positionInLine <= equalsPos) {
 			// We're on the left side of equals (variable definition)
-			String leftSide = line.substring(0, positionInLine).trim();
+			// Find the start of the current word
+			int wordStart = positionInLine - 1;
+			while (wordStart >= 0 && Character.isJavaIdentifierPart(line.charAt(wordStart))) {
+				wordStart--;
+			}
+			wordStart++;
+			
+			String leftSide = line.substring(wordStart, positionInLine);
 			context.partialText = leftSide;
 			context.defineVariable = leftSide;
-			context.replacementOffset -= leftSide.length();
+			context.replacementOffset = context.replacementOffset - positionInLine + wordStart;
 			context.replacementLength = leftSide.length();
 		} else {
 			// We're on the right side of equals (value assignment)
-			String rightSide = line.substring(equalsPos + 1, positionInLine).trim();
+			String beforeCursor = line.substring(equalsPos + 1, positionInLine);
 			context.defineVariable = line.substring(0, equalsPos).trim();
 			
+			// Find the start of the current expression (including dots)
+			int expressionStart = equalsPos + 1;
+			while (expressionStart < positionInLine && Character.isWhitespace(line.charAt(expressionStart))) {
+				expressionStart++; // Skip whitespace after =
+			}
+			
+			// Find the actual start of the current word/expression
+			int currentStart = positionInLine - 1;
+			while (currentStart >= expressionStart) {
+				char ch = line.charAt(currentStart);
+				if (!Character.isJavaIdentifierPart(ch) && ch != '.') {
+					break;
+				}
+				currentStart--;
+			}
+			currentStart++;
+			
+			String currentExpression = line.substring(currentStart, positionInLine);
+			
 			// Check for dot notation
-			int lastDotIndex = rightSide.lastIndexOf('.');
+			int lastDotIndex = currentExpression.lastIndexOf('.');
 			if (lastDotIndex >= 0) {
 				context.isDotCompletion = true;
-				context.objectName = rightSide.substring(0, lastDotIndex).trim();
-				context.partialText = rightSide.substring(lastDotIndex + 1);
-				context.replacementOffset -= context.partialText.length();
+				context.objectName = currentExpression.substring(0, lastDotIndex).trim();
+				context.partialText = currentExpression.substring(lastDotIndex + 1);
+				context.replacementOffset = context.replacementOffset - positionInLine + currentStart + lastDotIndex + 1;
 				context.replacementLength = context.partialText.length();
 			} else {
-				context.partialText = rightSide;
-				context.replacementOffset -= rightSide.length();
-				context.replacementLength = rightSide.length();
+				context.partialText = currentExpression;
+				context.replacementOffset = context.replacementOffset - positionInLine + currentStart;
+				context.replacementLength = currentExpression.length();
 			}
 		}
 	}
@@ -246,6 +288,8 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 		ArrayList<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		
 		try {
+			System.out.println("RebecaPropContextAwareCompletionProcessor.computeCompletionProposals called with offset: " + offset);
+			
 			IDocument document = viewer.getDocument();
 			
 			// Safety check for offset
@@ -255,6 +299,12 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 			
 			// Get completion context
 			PropCompletionContext context = getCompletionContext(document, offset);
+			
+			System.out.println("Context - isDot: " + context.isDotCompletion + 
+					", object: '" + context.objectName + "', partial: '" + context.partialText + 
+					"', isDefine: " + context.isDefineContext + 
+					", replaceOffset: " + context.replacementOffset + 
+					", replaceLength: " + context.replacementLength);
 			
 			// Add basic keyword completions if not in specific contexts
 			if (!context.isDefineContext || !context.isDotCompletion) {
@@ -268,8 +318,11 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 			}
 			
 			// Add defined variables from the same file
-			addDefinedVariables(document, context, proposals);
+			if (!context.isDotCompletion) { // Don't add defined vars when completing object.field
+				addDefinedVariables(document, context, proposals);
+			}
 			
+			System.out.println("Total completions: " + proposals.size());
 			return proposals.toArray(new ICompletionProposal[proposals.size()]);
 			
 		} catch (Exception e) {
