@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
  */
 public class RebecaTextHover implements ITextHover {
     
-    private RebecaEditor editor;
+    private final RebecaEditor editor;
     
     public RebecaTextHover(RebecaEditor editor) {
         this.editor = editor;
@@ -95,7 +95,7 @@ public class RebecaTextHover implements ITextHover {
             Pattern methodCallPattern = Pattern.compile("(\\w+|self)\\s*\\.\\s*" + Pattern.quote(hoveredText) + "\\s*\\(");
             Matcher methodMatcher = methodCallPattern.matcher(line);
             if (methodMatcher.find()) {
-                return new HoverContext(HoverType.METHOD_CALL, hoveredText, null);
+                return new HoverContext(HoverType.METHOD_CALL, hoveredText);
             }
             
             // Check if this is a class instantiation or usage
@@ -106,7 +106,7 @@ public class RebecaTextHover implements ITextHover {
                 "\\b" + Pattern.quote(hoveredText) + "\\s+\\w+\\s*\\([^)]*\\)\\s*:\\s*\\([^)]*\\)\\s*;"
             );
             if (rebecaClassPattern.matcher(line).find()) {
-                return new HoverContext(HoverType.CLASS_USAGE, hoveredText, null);
+                return new HoverContext(HoverType.CLASS_USAGE, hoveredText);
             }
             
             // Pattern 2: ClassName identifier (general class usage)
@@ -115,7 +115,7 @@ public class RebecaTextHover implements ITextHover {
             );
             if (classUsagePattern.matcher(line).find() && !line.trim().startsWith("reactiveclass")) {
                 // Make sure we're not matching the class declaration itself
-                return new HoverContext(HoverType.CLASS_USAGE, hoveredText, null);
+                return new HoverContext(HoverType.CLASS_USAGE, hoveredText);
             }
             
         } catch (BadLocationException e) {
@@ -157,9 +157,9 @@ public class RebecaTextHover implements ITextHover {
         Matcher signatureMatcher = methodSignaturePattern.matcher(documentText);
         if (signatureMatcher.find()) {
             String signature = signatureMatcher.group(0).replaceAll("\\s+", " ");
+            String formattedSignature = formatSignature(signature);
             
             // Now look for documentation within the method body
-            int methodStart = signatureMatcher.start();
             int braceStart = documentText.indexOf('{', signatureMatcher.end());
             if (braceStart != -1) {
                 // Find the end of the method by matching braces
@@ -172,22 +172,24 @@ public class RebecaTextHover implements ITextHover {
                     Matcher docMatcher = docPattern.matcher(methodBody);
                     
                     StringBuilder hoverInfo = new StringBuilder();
-                    hoverInfo.append(signature);
+                    hoverInfo.append("<html><body>");
+                    hoverInfo.append("<div style=\"font-family: monospace;\">").append(formattedSignature).append("</div>");
                     
                     if (docMatcher.find()) {
                         String documentation = docMatcher.group(1);
                         String cleanDoc = cleanDocumentation(documentation);
                         if (!cleanDoc.isEmpty()) {
-                            hoverInfo.append("\n\n").append(cleanDoc);
+                            hoverInfo.append("<br><br>").append(cleanDoc);
                         }
                     }
                     
+                    hoverInfo.append("</body></html>");
                     return hoverInfo.toString();
                 }
             }
             
             // If no documentation found, just return the signature
-            return signature;
+            return "<html><body><div style=\"font-family: monospace;\">" + formattedSignature + "</div></body></html>";
         }
         
         return null;
@@ -205,6 +207,7 @@ public class RebecaTextHover implements ITextHover {
         Matcher signatureMatcher = classSignaturePattern.matcher(documentText);
         if (signatureMatcher.find()) {
             String signature = signatureMatcher.group(0).replaceAll("\\s+", " ");
+            String formattedSignature = formatSignature(signature);
             
             // Now look for documentation within the class body
             int braceStart = documentText.indexOf('{', signatureMatcher.end());
@@ -219,22 +222,24 @@ public class RebecaTextHover implements ITextHover {
                     Matcher docMatcher = docPattern.matcher(classBody);
                     
                     StringBuilder hoverInfo = new StringBuilder();
-                    hoverInfo.append(signature);
+                    hoverInfo.append("<html><body>");
+                    hoverInfo.append("<div style=\"font-family: monospace;\">").append(formattedSignature).append("</div>");
                     
                     if (docMatcher.find()) {
                         String documentation = docMatcher.group(1);
                         String cleanDoc = cleanDocumentation(documentation);
                         if (!cleanDoc.isEmpty()) {
-                            hoverInfo.append("\n\n").append(cleanDoc);
+                            hoverInfo.append("<br><br>").append(cleanDoc);
                         }
                     }
                     
+                    hoverInfo.append("</body></html>");
                     return hoverInfo.toString();
                 }
             }
             
             // If no documentation found, just return the signature
-            return signature;
+            return "<html><body><div style=\"font-family: monospace;\">" + formattedSignature + "</div></body></html>";
         }
         
         return null;
@@ -265,7 +270,7 @@ public class RebecaTextHover implements ITextHover {
     }
     
     /**
-     * Cleans up documentation comment formatting
+     * Cleans up documentation comment formatting and adds semantic formatting
      */
     private String cleanDocumentation(String documentation) {
         if (documentation == null) {
@@ -275,10 +280,65 @@ public class RebecaTextHover implements ITextHover {
         // Remove leading/trailing whitespace
         String cleaned = documentation.trim();
         
-        // Replace multiple whitespace characters with single spaces
-        cleaned = cleaned.replaceAll("\\s+", " ");
+        // Remove asterisks from the beginning of lines (common in /** */ comments)
+        cleaned = cleaned.replaceAll("(?m)^\\s*\\*\\s*", "");
+        
+        // Convert line breaks to HTML <br> tags to preserve multi-line formatting
+        cleaned = cleaned.replaceAll("\\r?\\n", "<br>");
+        
+        // Replace multiple spaces with single spaces, but preserve line breaks
+        cleaned = cleaned.replaceAll("[ \\t]+", " ");
+        
+        // Format @something text as bold
+        cleaned = cleaned.replaceAll("(@\\w+)", "<b>@$1</b>");
+        
+        // Escape other HTML characters to prevent issues
+        cleaned = cleaned.replaceAll("&", "&amp;");
+        cleaned = cleaned.replaceAll("<(?!/?br>|/?b>)", "&lt;");
+        cleaned = cleaned.replaceAll("(?<!</?br)>(?!/?b>)", "&gt;");
         
         return cleaned;
+    }
+    
+    /**
+     * Formats method/class signatures to make parameters bold
+     */
+    private String formatSignature(String signature) {
+        if (signature == null) {
+            return "";
+        }
+        
+        // Escape HTML characters first
+        String formatted = signature.replaceAll("&", "&amp;")
+                                   .replaceAll("<", "&lt;")
+                                   .replaceAll(">", "&gt;");
+        
+        // Find and format parameters within parentheses
+        Pattern paramPattern = Pattern.compile("\\(([^)]*)\\)");
+        Matcher paramMatcher = paramPattern.matcher(formatted);
+        
+        if (paramMatcher.find()) {
+            String params = paramMatcher.group(1).trim();
+            if (!params.isEmpty()) {
+                // Split parameters by comma and make each one bold
+                String[] paramArray = params.split(",");
+                StringBuilder boldParams = new StringBuilder();
+                
+                for (int i = 0; i < paramArray.length; i++) {
+                    String param = paramArray[i].trim();
+                    if (!param.isEmpty()) {
+                        boldParams.append("<b>").append(param).append("</b>");
+                        if (i < paramArray.length - 1) {
+                            boldParams.append(", ");
+                        }
+                    }
+                }
+                
+                formatted = paramMatcher.replaceFirst("(" + boldParams.toString() + ")");
+            }
+        }
+        
+        return formatted;
     }
     
     /**
@@ -287,12 +347,10 @@ public class RebecaTextHover implements ITextHover {
     private static class HoverContext {
         final HoverType type;
         final String elementName;
-        final String additionalInfo;
         
-        public HoverContext(HoverType type, String elementName, String additionalInfo) {
+        public HoverContext(HoverType type, String elementName) {
             this.type = type;
             this.elementName = elementName;
-            this.additionalInfo = additionalInfo;
         }
     }
     
