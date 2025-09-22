@@ -14,6 +14,7 @@ import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
 import org.eclipse.jface.text.source.projection.ProjectionSupport;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.core.resources.IFile;
 
 public class RebecaPropEditor extends TextEditor {
 	
@@ -21,6 +22,7 @@ public class RebecaPropEditor extends TextEditor {
 
 	private ColorManager colorManager;
 	private ProjectionSupport projectionSupport;
+	private PropertyRealTimeSyntaxChecker syntaxChecker;
 
 	public static RebecaPropEditor current() {
 		return current;
@@ -77,6 +79,9 @@ public class RebecaPropEditor extends TextEditor {
 		
 		annotationModel = viewer.getProjectionAnnotationModel();
 		
+		// Initialize real-time syntax checker
+		initializeRealTimeSyntaxChecker();
+		
     }
 	private Annotation[] oldAnnotations;
 	private ProjectionAnnotationModel annotationModel;
@@ -111,6 +116,52 @@ public class RebecaPropEditor extends TextEditor {
     	// ensure decoration support has been created and configured.
     	getSourceViewerDecorationSupport(viewer);
     	
-    	return viewer;
+	    	return viewer;
+    }
+    
+    /**
+     * Initialize real-time syntax checker for the current property file
+     */
+    private void initializeRealTimeSyntaxChecker() {
+        try {
+            System.out.println("RebecaPropEditor: Initializing real-time syntax checker...");
+            
+            // Get the file being edited
+            IFile file = (IFile) getEditorInput().getAdapter(IFile.class);
+            System.out.println("RebecaPropEditor: File: " + (file != null ? file.getName() : "null"));
+            
+            if (file != null && "property".equals(file.getFileExtension())) {
+                System.out.println("RebecaPropEditor: Creating PropertyRealTimeSyntaxChecker for " + file.getName());
+                syntaxChecker = new PropertyRealTimeSyntaxChecker(this, file);
+                syntaxChecker.startChecking(getDocument());
+                System.out.println("RebecaPropEditor: Real-time syntax checker initialized successfully");
+            } else {
+                System.out.println("RebecaPropEditor: Not a .property file, skipping syntax checker initialization");
+            }
+        } catch (Exception e) {
+            System.err.println("RebecaPropEditor: Failed to initialize real-time syntax checker: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    @Override
+    public void dispose() {
+        // Clean up syntax checker
+        if (syntaxChecker != null) {
+            try {
+                syntaxChecker.stopChecking(getDocument());
+                syntaxChecker.dispose();
+                syntaxChecker = null;
+            } catch (Exception e) {
+                System.err.println("Error disposing syntax checker: " + e.getMessage());
+            }
+        }
+        
+        // Clean up color manager
+        if (colorManager != null) {
+            colorManager.dispose();
+        }
+        
+        super.dispose();
     }
 }
