@@ -108,7 +108,7 @@ public class ASTPropertyFormatter implements IAfraFormatter {
         
         try {
             // Extract comments before compilation
-            extractComments(content);
+            //extractComments(content);
             
             // Compile the property file to get AST
             PropertyModel propertyModel = compileToAST(content);

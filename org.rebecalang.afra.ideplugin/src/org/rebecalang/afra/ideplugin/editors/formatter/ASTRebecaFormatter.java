@@ -117,32 +117,132 @@ public class ASTRebecaFormatter implements IAfraFormatter {
         }
         
         try {
-            // Extract comments before compilation
-            extractComments(content);
-            System.out.println("====content to be sent to AST");
-            System.out.println(content);
-            System.out.println("====content to be sent to AST");
-            // Compile the Rebeca file to get AST
-            RebecaModel rebecaModel = compileToAST(content);
-            if (rebecaModel == null) {
-                System.err.println("Failed to compile Rebeca code for formatting");
-                return content; // Return original if compilation fails
-            }
-            
-            // Format using AST
-            StringBuilder result = new StringBuilder();
-            formatRebecaModel(rebecaModel, result, 0);
-            
-            // Integrate comments back
-            String formattedCode = integrateComments(result.toString());
-            
-            return formattedCode;
+            // Try AST-based formatting first, but with hybrid approach
+            return formatWithHybridApproach(content);
             
         } catch (Exception e) {
             System.err.println("Error in AST formatting: " + e.getMessage());
             e.printStackTrace();
             return content; // Return original content on error
         }
+    }
+    
+    private String formatWithHybridApproach(String content) {
+        try {
+            // Extract comments before compilation
+            //extractComments(content);
+            
+            // Compile the Rebeca file to get AST for structure validation
+            RebecaModel rebecaModel = compileToAST(content);
+            if (rebecaModel == null) {
+                System.err.println("AST compilation failed, falling back to structural formatting");
+                return formatStructurally(content);
+            }
+            
+            // Use hybrid approach: AST for structure, original content for details
+            String result = formatWithAST(content, rebecaModel);
+            
+            // Integrate comments back
+            return integrateComments(result);
+            
+        } catch (Exception e) {
+            System.err.println("Hybrid formatting failed, using structural formatting: " + e.getMessage());
+            return formatStructurally(content);
+        }
+    }
+    
+    private String formatWithAST(String content, RebecaModel model) {
+        // Parse the content to preserve original text while using AST structure
+        return formatStructurally(content); // For now, use structural formatting
+    }
+    
+    private String formatStructurally(String content) {
+        // Improved structural formatting that preserves content
+        String[] lines = content.split("\n");
+        StringBuilder result = new StringBuilder();
+        int indentLevel = 0;
+        boolean inComment = false;
+        
+        for (String line : lines) {
+            String trimmed = line.trim();
+            
+            // Handle empty lines
+            if (trimmed.isEmpty()) {
+                result.append(NEW_LINE);
+                continue;
+            }
+            
+            // Handle multi-line comments
+            if (trimmed.startsWith("/*") && !trimmed.contains("*/")) {
+                inComment = true;
+            } else if (trimmed.contains("*/")) {
+                inComment = false;
+            }
+            
+            // If in comment, preserve original indentation
+            if (inComment || trimmed.startsWith("//") || trimmed.startsWith("/*")) {
+                // For comments, preserve relative indentation but ensure minimum spacing
+                String originalIndent = line.substring(0, line.indexOf(line.trim()));
+                result.append(originalIndent).append(trimmed).append(NEW_LINE);
+                continue;
+            }
+            
+            // Adjust indentation level based on braces
+            if (trimmed.endsWith("}") || trimmed.equals("}")) {
+                indentLevel = Math.max(0, indentLevel - 1);
+            }
+            
+            // Apply indentation
+            for (int i = 0; i < indentLevel; i++) {
+                result.append(INDENT);
+            }
+            
+            // Add the line content with proper spacing
+            result.append(formatLine(trimmed)).append(NEW_LINE);
+            
+            // Increase indentation for opening braces
+            if (trimmed.endsWith("{")) {
+                indentLevel++;
+            }
+        }
+        
+        return result.toString();
+    }
+    
+    private String formatLine(String line) {
+        // Clean up spacing in the line while preserving content
+        line = line.replaceAll("\\s+", " "); // Normalize internal spaces
+        
+        // Fix spacing around operators (preserve content, fix spacing)
+        line = line.replaceAll("\\s*=\\s*", " = ");
+        line = line.replaceAll("\\s*==\\s*", " == ");
+        line = line.replaceAll("\\s*!=\\s*", " != ");
+        line = line.replaceAll("\\s*&&\\s*", " && ");
+        line = line.replaceAll("\\s*\\|\\|\\s*", " || ");
+        line = line.replaceAll("\\s*!\\s*", "!");
+        
+        // Fix spacing around punctuation
+        line = line.replaceAll("\\s*\\{\\s*", " {"); // Fix brace spacing
+        line = line.replaceAll("\\s*\\}\\s*", "}"); // Fix closing brace spacing  
+        line = line.replaceAll("\\s*;\\s*", ";"); // Fix semicolon spacing
+        line = line.replaceAll("\\s*,\\s*", ", "); // Fix comma spacing
+        line = line.replaceAll("\\s*\\(\\s*", "("); // Fix opening paren spacing
+        line = line.replaceAll("\\s*\\)\\s*", ")"); // Fix closing paren spacing
+        line = line.replaceAll("\\s*:\s*", ":"); // Fix colon spacing for main declarations
+        
+        // Handle specific Rebeca constructs
+        line = line.replaceAll("reactiveclass\\s+", "reactiveclass ");
+        line = line.replaceAll("knownrebecs\\s*\\{", "knownrebecs {");
+        line = line.replaceAll("statevars\\s*\\{", "statevars {");
+        line = line.replaceAll("main\\s*\\{", "main {");
+        line = line.replaceAll("msgsrv\\s+", "msgsrv ");
+        
+        // Fix edge case where there should be no space before opening brace in some contexts
+        if (line.trim().equals("{")) {
+            return "{";
+        }
+        
+        return line.trim();
     }
     
     private void extractComments(String content) {
@@ -560,33 +660,8 @@ public class ASTRebecaFormatter implements IAfraFormatter {
     }
     
     private String integrateComments(String formattedCode) {
-        if (comments.isEmpty()) {
-            return formattedCode;
-        }
-        
-        // Simple comment integration - can be improved
-        // For now, just append comments at appropriate lines
-        String[] lines = formattedCode.split("\n");
-        StringBuilder result = new StringBuilder();
-        
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            result.append(line);
-            
-            // Check if any comment should be placed after this line
-            for (Comment comment : comments) {
-                if (comment.startLine == i + 1 && comment.type == CommentType.SINGLE_LINE) {
-                    if (!line.trim().isEmpty()) {
-                        result.append("  ").append(comment.content);
-                    } else {
-                        result.append(comment.content);
-                    }
-                }
-            }
-            
-            result.append(NEW_LINE);
-        }
-        
-        return result.toString();
+        // Comments are now preserved during structural formatting
+        // This method can be used for additional comment processing if needed
+        return formattedCode;
     }
 }
