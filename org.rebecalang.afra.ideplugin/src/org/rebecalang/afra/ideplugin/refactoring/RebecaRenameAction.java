@@ -2,9 +2,11 @@ package org.rebecalang.afra.ideplugin.refactoring;
 
 import java.util.List;
 
+import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -13,33 +15,31 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- * Action for renaming Rebeca symbols (Ctrl+Shift+R)
+ * Handler for renaming Rebeca symbols (Ctrl+Shift+R)
  */
-public class RebecaRenameAction implements IEditorActionDelegate {
-    
-    private IEditorPart editor;
-    private Shell shell;
+public class RebecaRenameAction extends AbstractHandler {
     
     @Override
-    public void run(IAction action) {
+    public Object execute(ExecutionEvent event) throws ExecutionException {
+        IEditorPart editor = HandlerUtil.getActiveEditor(event);
         if (!(editor instanceof ITextEditor)) {
-            return;
+            return null;
         }
         
         ITextEditor textEditor = (ITextEditor) editor;
-        shell = textEditor.getSite().getShell();
+        Shell shell = textEditor.getSite().getShell();
         
         try {
             // Get current selection/cursor position
             ISelection selection = textEditor.getSelectionProvider().getSelection();
             if (!(selection instanceof ITextSelection)) {
-                showError("Please place cursor on a symbol to rename.");
-                return;
+                showError(shell, "Please place cursor on a symbol to rename.");
+                return null;
             }
             
             ITextSelection textSelection = (ITextSelection) selection;
@@ -48,8 +48,8 @@ public class RebecaRenameAction implements IEditorActionDelegate {
             // Get the file and project
             IFile file = (IFile) textEditor.getEditorInput().getAdapter(IFile.class);
             if (file == null) {
-                showError("Could not determine current file.");
-                return;
+                showError(shell, "Could not determine current file.");
+                return null;
             }
             
             IProject project = file.getProject();
@@ -57,8 +57,8 @@ public class RebecaRenameAction implements IEditorActionDelegate {
             // Analyze symbol at cursor position
             SymbolAnalysisResult analysisResult = analyzeSymbolAtPosition(document, textSelection.getOffset());
             if (analysisResult == null) {
-                showError("No renameable symbol found at cursor position.");
-                return;
+                showError(shell, "No renameable symbol found at cursor position.");
+                return null;
             }
             
             // Find all occurrences of the symbol
@@ -71,8 +71,8 @@ public class RebecaRenameAction implements IEditorActionDelegate {
             );
             
             if (occurrences.isEmpty()) {
-                showError("No occurrences found for symbol '" + analysisResult.symbolName + "'.");
-                return;
+                showError(shell, "No occurrences found for symbol '" + analysisResult.symbolName + "'.");
+                return null;
             }
             
             // Show rename dialog
@@ -81,32 +81,15 @@ public class RebecaRenameAction implements IEditorActionDelegate {
             
             if (dialog.open() == Window.OK) {
                 // Perform the rename operation
-                performRename(dialog.getNewName(), dialog.getSelectedOccurrences());
+                performRename(shell, dialog.getNewName(), dialog.getSelectedOccurrences());
             }
             
         } catch (Exception e) {
-            showError("Rename operation failed: " + e.getMessage());
+            showError(shell, "Rename operation failed: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-    
-    @Override
-    public void selectionChanged(IAction action, ISelection selection) {
-        // Enable action only for Rebeca files
-        boolean enabled = false;
-        if (editor instanceof ITextEditor) {
-            IFile file = (IFile) editor.getEditorInput().getAdapter(IFile.class);
-            if (file != null) {
-                String extension = file.getFileExtension();
-                enabled = "rebeca".equals(extension) || "property".equals(extension);
-            }
-        }
-        action.setEnabled(enabled);
-    }
-    
-    @Override
-    public void setActiveEditor(IAction action, IEditorPart targetEditor) {
-        this.editor = targetEditor;
+        
+        return null;
     }
     
     /**
@@ -278,7 +261,7 @@ public class RebecaRenameAction implements IEditorActionDelegate {
     /**
      * Perform the actual rename operation
      */
-    private void performRename(String newName, List<RebecaRefactoringParticipant.SymbolOccurrence> occurrences) {
+    private void performRename(Shell shell, String newName, List<RebecaRefactoringParticipant.SymbolOccurrence> occurrences) {
         try {
             // Group occurrences by file
             java.util.Map<IFile, List<RebecaRefactoringParticipant.SymbolOccurrence>> fileOccurrences = new java.util.HashMap<>();
@@ -298,7 +281,7 @@ public class RebecaRenameAction implements IEditorActionDelegate {
                             totalRenamed, fileOccurrences.size()));
             
         } catch (Exception e) {
-            showError("Rename operation failed: " + e.getMessage());
+            showError(shell, "Rename operation failed: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -331,7 +314,7 @@ public class RebecaRenameAction implements IEditorActionDelegate {
         }
     }
     
-    private void showError(String message) {
+    private void showError(Shell shell, String message) {
         MessageDialog.openError(shell, "Rename Error", message);
     }
     

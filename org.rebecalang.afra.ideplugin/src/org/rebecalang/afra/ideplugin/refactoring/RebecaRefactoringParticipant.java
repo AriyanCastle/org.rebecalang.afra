@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -74,25 +75,67 @@ public class RebecaRefactoringParticipant {
     }
     
     /**
-     * Find all occurrences of a symbol across the project
+     * Find all occurrences of a symbol in the current file and its corresponding paired file
      */
     public List<SymbolOccurrence> findAllOccurrences(String symbolName, SymbolType symbolType, 
                                                     IFile originFile, int originOffset) {
         List<SymbolOccurrence> occurrences = new ArrayList<>();
         
         try {
-            // Get all Rebeca and property files in the project
-            List<IFile> rebecaFiles = findRebecaFiles(project);
+            // Get the current file and its corresponding paired file
+            List<IFile> pairedFiles = findPairedFiles(originFile);
             
-            for (IFile file : rebecaFiles) {
+            for (IFile file : pairedFiles) {
                 occurrences.addAll(findOccurrencesInFile(file, symbolName, symbolType, originFile, originOffset));
             }
             
-        } catch (CoreException e) {
+        } catch (Exception e) {
             System.err.println("Error finding symbol occurrences: " + e.getMessage());
         }
         
         return occurrences;
+    }
+    
+    /**
+     * Find the current file and its corresponding paired file (same base name, different extension)
+     */
+    private List<IFile> findPairedFiles(IFile originFile) {
+        List<IFile> pairedFiles = new ArrayList<>();
+        
+        // Always include the origin file
+        pairedFiles.add(originFile);
+        
+        // Get the base name (filename without extension)
+        String fileName = originFile.getName();
+        String extension = originFile.getFileExtension();
+        String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+        
+        // Determine the paired extension
+        String pairedExtension;
+        if ("rebeca".equals(extension)) {
+            pairedExtension = "property";
+        } else if ("property".equals(extension)) {
+            pairedExtension = "rebeca";
+        } else {
+            // Unknown extension, return only the origin file
+            return pairedFiles;
+        }
+        
+        // Look for the paired file in the same folder
+        try {
+            IContainer parent = originFile.getParent();
+            String pairedFileName = baseName + "." + pairedExtension;
+            IFile pairedFile = parent.getFile(new org.eclipse.core.runtime.Path(pairedFileName));
+            
+            // Only add if the paired file exists
+            if (pairedFile.exists()) {
+                pairedFiles.add(pairedFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Error finding paired file: " + e.getMessage());
+        }
+        
+        return pairedFiles;
     }
     
     /**
