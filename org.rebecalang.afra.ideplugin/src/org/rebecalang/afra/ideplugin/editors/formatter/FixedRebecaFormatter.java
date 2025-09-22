@@ -39,52 +39,73 @@ public class FixedRebecaFormatter implements IAfraFormatter {
         return INDENT;
     }
     
+        
     private String formatContent(String content) {
         if (content == null || content.trim().isEmpty()) {
             return content;
         }
-        
+
         // Normalize line endings and remove trailing spaces
         content = content.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
         content = content.replaceAll("[ \t]+\n", "\n");
-        
+
         String[] lines = content.split("\n");
         StringBuilder result = new StringBuilder();
         int braceLevel = 0;
-        
+        boolean inBlockComment = false;
+
         for (String line : lines) {
             String trimmed = line.trim();
-            
+
             // Handle empty lines
             if (trimmed.isEmpty()) {
                 result.append(NEW_LINE);
                 continue;
             }
-            
-            // Calculate indentation level for this line
-            int currentIndent = braceLevel;
-            
-            // Closing braces decrease the indentation level for themselves
-            if (trimmed.startsWith("}")) {
-                currentIndent = Math.max(0, braceLevel - 1);
-                braceLevel = currentIndent; // Update for next lines
+
+            // Handle comments separately
+            boolean isComment = false;
+
+            if (trimmed.startsWith("/*") || trimmed.startsWith("/**")) {
+                inBlockComment = true;
+                isComment = true;
+            } else if (inBlockComment) {
+                isComment = true;
+                if (trimmed.endsWith("*/")) {
+                    inBlockComment = false;
+                }
+            } else if (trimmed.startsWith("//")) {
+                isComment = true;
             }
-            
+
+            int currentIndent = braceLevel;
+
+            // Closing braces decrease indent first
+            if (!isComment && trimmed.startsWith("}")) {
+                currentIndent = Math.max(0, braceLevel - 1);
+                braceLevel = currentIndent;
+            }
+
             // Apply indentation
             for (int i = 0; i < currentIndent; i++) {
                 result.append(INDENT);
             }
-            
-            // Add the line content
-            result.append(trimmed);
+
+            // Keep comment inner formatting (`* ...`) inside block comments
+            if (isComment && inBlockComment && trimmed.startsWith("*") && !trimmed.startsWith("*/")) {
+                result.append(" ").append(trimmed); 
+            } else {
+                result.append(trimmed);
+            }
+
             result.append(NEW_LINE);
-            
-            // Opening braces increase indentation level for subsequent lines
-            if (trimmed.endsWith("{")) {
+
+            // Opening braces increase indent
+            if (!isComment && trimmed.endsWith("{")) {
                 braceLevel++;
             }
         }
-        
+
         return result.toString().replaceAll("\n+$", "\n");
     }
     
