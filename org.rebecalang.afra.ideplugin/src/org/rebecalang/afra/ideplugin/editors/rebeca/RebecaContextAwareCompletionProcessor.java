@@ -394,6 +394,9 @@ public class RebecaContextAwareCompletionProcessor implements IContentAssistProc
 					fields.addAll(rcd.getStatevars());
 				}
 				
+				// Add method parameter completions if we're inside a method
+				MethodDeclaration currentMethod = getCurrentMethod(rcd, lineNumber);
+				
 				// Handle dot completions
 				if (context.isDotCompletion) {
 					// Check for self methods
@@ -407,11 +410,15 @@ public class RebecaContextAwareCompletionProcessor implements IContentAssistProc
 						}
 						
 						for (MethodDeclaration md : methods) {
-							if (md.getName() != null && 
-								md.getName().toLowerCase().startsWith(context.partialText.toLowerCase())) {
-								proposals.add(new CompletionProposal(md.getName() + "()", 
-									context.replacementOffset, context.replacementLength, 
-									md.getName().length() + 1));
+							if (md.getName() != null) {
+								// If partial text is empty (user typed "self." with no additional text), show all methods
+								// Otherwise filter by partial text
+								if (context.partialText.isEmpty() || 
+									md.getName().toLowerCase().startsWith(context.partialText.toLowerCase())) {
+									proposals.add(new CompletionProposal(md.getName() + "()", 
+										context.replacementOffset, context.replacementLength, 
+										md.getName().length() + 1));
+								}
 							}
 						}
 					}
@@ -430,6 +437,11 @@ public class RebecaContextAwareCompletionProcessor implements IContentAssistProc
 				}
 				// Regular variable and method name completion (no dot)
 				else {
+					// Add method parameters if inside a method
+					if (currentMethod != null) {
+						addMethodParameterCompletions(currentMethod, context, proposals);
+					}
+					
 					// Check for statevars and knownrebecs variables
 					for (FieldDeclaration fd : fields) {
 						if (fd.getVariableDeclarators() != null) {
@@ -492,10 +504,14 @@ public class RebecaContextAwareCompletionProcessor implements IContentAssistProc
 				Enumeration<String> keys = symbolTable.getmethodSymbolTable().get(classType).keys();
 				while (keys.hasMoreElements()) {
 					String methodName = keys.nextElement();
-					if (methodName != null && !methodName.isEmpty() &&
-						methodName.toLowerCase().startsWith(context.partialText.toLowerCase())) {
-						proposals.add(new CompletionProposal(methodName + "()", 
-							context.replacementOffset, context.replacementLength, methodName.length() + 1));
+					if (methodName != null && !methodName.isEmpty()) {
+						// If partial text is empty (user typed "object." with no additional text), show all methods
+						// Otherwise filter by partial text
+						if (context.partialText.isEmpty() || 
+							methodName.toLowerCase().startsWith(context.partialText.toLowerCase())) {
+							proposals.add(new CompletionProposal(methodName + "()", 
+								context.replacementOffset, context.replacementLength, methodName.length() + 1));
+						}
 					}
 				}
 			}
@@ -505,10 +521,14 @@ public class RebecaContextAwareCompletionProcessor implements IContentAssistProc
 				Enumeration<String> keys = symbolTable.getVariableSymbolTable().get(classType).keys();
 				while (keys.hasMoreElements()) {
 					String fieldName = keys.nextElement();
-					if (fieldName != null && !fieldName.isEmpty() &&
-						fieldName.toLowerCase().startsWith(context.partialText.toLowerCase())) {
-						proposals.add(new CompletionProposal(fieldName, 
-							context.replacementOffset, context.replacementLength, fieldName.length()));
+					if (fieldName != null && !fieldName.isEmpty()) {
+						// If partial text is empty (user typed "object." with no additional text), show all fields
+						// Otherwise filter by partial text
+						if (context.partialText.isEmpty() || 
+							fieldName.toLowerCase().startsWith(context.partialText.toLowerCase())) {
+							proposals.add(new CompletionProposal(fieldName, 
+								context.replacementOffset, context.replacementLength, fieldName.length()));
+						}
 					}
 				}
 			}
@@ -537,6 +557,55 @@ public class RebecaContextAwareCompletionProcessor implements IContentAssistProc
 		// Simple heuristic: if the current word starts with uppercase, it might be a class instantiation
 		// In Rebeca, class names typically start with uppercase (Node, Customer, Agent, etc.)
 		return partialText.length() > 0 && Character.isUpperCase(partialText.charAt(0));
+	}
+	
+	/**
+	 * Find the method that contains the given line number
+	 */
+	private MethodDeclaration getCurrentMethod(ReactiveClassDeclaration rcd, int lineNumber) {
+		if (rcd.getMsgsrvs() != null) {
+			for (MethodDeclaration md : rcd.getMsgsrvs()) {
+				if (md.getLineNumber() <= lineNumber && lineNumber <= md.getEndLineNumber()) {
+					return md;
+				}
+			}
+		}
+		if (rcd.getSynchMethods() != null) {
+			for (MethodDeclaration md : rcd.getSynchMethods()) {
+				if (md.getLineNumber() <= lineNumber && lineNumber <= md.getEndLineNumber()) {
+					return md;
+				}
+			}
+		}
+		// Check constructor
+		if (rcd.getConstructors() != null) {
+			for (MethodDeclaration md : rcd.getConstructors()) {
+				if (md.getLineNumber() <= lineNumber && lineNumber <= md.getEndLineNumber()) {
+					return md;
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Add method parameter completions for the current method context
+	 */
+	private void addMethodParameterCompletions(MethodDeclaration method, CompletionContext context, 
+			ArrayList<ICompletionProposal> proposals) {
+		if (method.getFormalParameters() != null) {
+			for (FieldDeclaration param : method.getFormalParameters()) {
+				if (param.getVariableDeclarators() != null) {
+					for (VariableDeclarator vd : param.getVariableDeclarators()) {
+						if (vd.getVariableName() != null && 
+							vd.getVariableName().toLowerCase().startsWith(context.partialText.toLowerCase())) {
+							proposals.add(new CompletionProposal(vd.getVariableName(), 
+								context.replacementOffset, context.replacementLength, vd.getVariableName().length()));
+						}
+					}
+				}
+			}
+		}
 	}
 
 	@Override
