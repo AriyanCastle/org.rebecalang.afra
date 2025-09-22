@@ -12,7 +12,8 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.rebecalang.afra.ideplugin.editors.ColorManager;
 import org.rebecalang.afra.ideplugin.editors.GeneralSourceViewerConfiguration;
 import org.rebecalang.afra.ideplugin.editors.GeneralTextAttribute;
-import org.rebecalang.afra.ideplugin.editors.formatter.RebecaFormattingStrategy;
+import org.rebecalang.afra.ideplugin.editors.formatter.RebecaFormatter;
+import org.rebecalang.afra.ideplugin.editors.formatter.FullDocumentContentFormatter;
 import org.eclipse.jface.text.reconciler.IReconciler;
 import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.jface.text.ITextHover;
@@ -73,12 +74,8 @@ public class RebecaSourceViewerConfiguration extends GeneralSourceViewerConfigur
 
    @Override
    public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {
-       ContentFormatter formatter = new ContentFormatter();
-       RebecaFormattingStrategy formattingStrategy = new RebecaFormattingStrategy();
-       
-       formatter.setFormattingStrategy(formattingStrategy, IDocument.DEFAULT_CONTENT_TYPE);
-       
-       return formatter;
+       RebecaFormatter rebecaFormatter = new RebecaFormatter();
+       return new FullDocumentContentFormatter(rebecaFormatter);
    }
 
    public IReconciler getReconciler(ISourceViewer sourceViewer)
