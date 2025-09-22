@@ -80,8 +80,7 @@ public class FixedRebecaFormatter implements IAfraFormatter {
             result.append(NEW_LINE);
             
             // Opening braces increase indentation level for subsequent lines
-            // BUT only for non-comment lines
-            if (trimmed.endsWith("{") && !isComment(trimmed)) {
+            if (trimmed.endsWith("{")) {
                 braceLevel++;
             }
         }
@@ -89,8 +88,4 @@ public class FixedRebecaFormatter implements IAfraFormatter {
         return result.toString().replaceAll("\n+$", "\n");
     }
     
-    private boolean isComment(String trimmed) {
-        return trimmed.startsWith("//") || trimmed.startsWith("/*") || 
-               trimmed.startsWith("*") || trimmed.endsWith("*/");
-    }
 }
