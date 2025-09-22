@@ -6,14 +6,14 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.formatter.IFormattingStrategy;
 
 /**
- * Formatting strategy for Rebeca files
+ * Formatting strategy for Rebeca files - now uses AST-based formatting
  */
 public class RebecaFormattingStrategy implements IFormattingStrategy {
     
-    private final FixedRebecaFormatter formatter;
+    private final ASTRebecaFormatter formatter;
     
     public RebecaFormattingStrategy() {
-        this.formatter = new FixedRebecaFormatter();
+        this.formatter = new ASTRebecaFormatter();
     }
     
     @Override
@@ -30,10 +30,12 @@ public class RebecaFormattingStrategy implements IFormattingStrategy {
         try {
             // Create a temporary document to use the formatter
             IDocument tempDoc = new org.eclipse.jface.text.Document(content);
-            return formatter.format(tempDoc);
+            String result = formatter.format(tempDoc);
+            System.out.println("RebecaFormattingStrategy: AST formatting completed successfully");
+            return result;
         } catch (Exception e) {
-            // If formatting fails, return original content
-            System.err.println("Formatting failed: " + e.getMessage());
+            // If AST formatting fails, return original content (no fallback to regex)
+            System.err.println("AST Rebeca formatting failed, returning original content: " + e.getMessage());
             return content;
         }
     }
@@ -48,9 +50,11 @@ public class RebecaFormattingStrategy implements IFormattingStrategy {
      */
     public String formatRegion(IDocument document, IRegion region) {
         try {
-            return formatter.format(document, region);
+            String result = formatter.format(document, region);
+            System.out.println("RebecaFormattingStrategy: AST region formatting completed successfully");
+            return result;
         } catch (Exception e) {
-            System.err.println("Region formatting failed: " + e.getMessage());
+            System.err.println("AST Region formatting failed: " + e.getMessage());
             try {
                 return document.get(region.getOffset(), region.getLength());
             } catch (BadLocationException ex) {
@@ -64,9 +68,11 @@ public class RebecaFormattingStrategy implements IFormattingStrategy {
      */
     public String formatDocument(IDocument document) {
         try {
-            return formatter.format(document);
+            String result = formatter.format(document);
+            System.out.println("RebecaFormattingStrategy: AST document formatting completed successfully");
+            return result;
         } catch (Exception e) {
-            System.err.println("Document formatting failed: " + e.getMessage());
+            System.err.println("AST Document formatting failed: " + e.getMessage());
             return document.get();
         }
     }

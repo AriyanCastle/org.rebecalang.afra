@@ -6,13 +6,13 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.formatter.IFormattingStrategy;
 
 /**
- * Formatting strategy for Property files - now uses AST-based formatting
+ * AST-based formatting strategy for Property files
  */
-public class PropertyFormattingStrategy implements IFormattingStrategy {
+public class ASTPropertyFormattingStrategy implements IFormattingStrategy {
     
     private final ASTPropertyFormatter formatter;
     
-    public PropertyFormattingStrategy() {
+    public ASTPropertyFormattingStrategy() {
         this.formatter = new ASTPropertyFormatter();
     }
     
@@ -31,10 +31,10 @@ public class PropertyFormattingStrategy implements IFormattingStrategy {
             // Create a temporary document to use the formatter
             IDocument tempDoc = new org.eclipse.jface.text.Document(content);
             String result = formatter.format(tempDoc);
-            System.out.println("PropertyFormattingStrategy: AST formatting completed successfully");
+            System.out.println("ASTPropertyFormattingStrategy: Successfully formatted content");
             return result;
         } catch (Exception e) {
-            // If AST formatting fails, return original content (no fallback to regex)
+            // If AST formatting fails, return original content
             System.err.println("AST Property formatting failed, returning original content: " + e.getMessage());
             return content;
         }
@@ -51,7 +51,7 @@ public class PropertyFormattingStrategy implements IFormattingStrategy {
     public String formatRegion(IDocument document, IRegion region) {
         try {
             String result = formatter.format(document, region);
-            System.out.println("PropertyFormattingStrategy: AST region formatting completed successfully");
+            System.out.println("ASTPropertyFormattingStrategy: Successfully formatted region");
             return result;
         } catch (Exception e) {
             System.err.println("AST Property region formatting failed: " + e.getMessage());
@@ -69,7 +69,7 @@ public class PropertyFormattingStrategy implements IFormattingStrategy {
     public String formatDocument(IDocument document) {
         try {
             String result = formatter.format(document);
-            System.out.println("PropertyFormattingStrategy: AST document formatting completed successfully");
+            System.out.println("ASTPropertyFormattingStrategy: Successfully formatted document");
             return result;
         } catch (Exception e) {
             System.err.println("AST Property document formatting failed: " + e.getMessage());
