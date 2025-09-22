@@ -119,7 +119,9 @@ public class ASTRebecaFormatter implements IAfraFormatter {
         try {
             // Extract comments before compilation
             extractComments(content);
-            
+            System.out.println("====content to be sent to AST");
+            System.out.println(content);
+            System.out.println("====content to be sent to AST");
             // Compile the Rebeca file to get AST
             RebecaModel rebecaModel = compileToAST(content);
             if (rebecaModel == null) {
