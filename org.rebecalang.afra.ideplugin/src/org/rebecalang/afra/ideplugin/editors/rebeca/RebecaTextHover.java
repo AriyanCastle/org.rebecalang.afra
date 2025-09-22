@@ -2,6 +2,7 @@ package org.rebecalang.afra.ideplugin.editors.rebeca;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextHoverExtension2;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.IDocument;
@@ -13,9 +14,9 @@ import java.util.regex.Pattern;
 /**
  * Provides hover information for Rebeca code elements (methods and classes)
  */
-public class RebecaTextHover implements ITextHover {
+public class RebecaTextHover implements ITextHover, ITextHoverExtension2 {
     
-    private final RebecaEditor editor;
+    private final RebecaEditor editor; // Reserved for future editor integration features
     
     public RebecaTextHover(RebecaEditor editor) {
         this.editor = editor;
@@ -23,6 +24,12 @@ public class RebecaTextHover implements ITextHover {
     
     @Override
     public String getHoverInfo(ITextViewer textViewer, IRegion hoverRegion) {
+        Object info = getHoverInfo2(textViewer, hoverRegion);
+        return info instanceof String ? (String) info : null;
+    }
+    
+    @Override
+    public Object getHoverInfo2(ITextViewer textViewer, IRegion hoverRegion) {
         try {
             IDocument document = textViewer.getDocument();
             String hoveredText = document.get(hoverRegion.getOffset(), hoverRegion.getLength());
@@ -172,24 +179,22 @@ public class RebecaTextHover implements ITextHover {
                     Matcher docMatcher = docPattern.matcher(methodBody);
                     
                     StringBuilder hoverInfo = new StringBuilder();
-                    hoverInfo.append("<html><body>");
-                    hoverInfo.append("<div style=\"font-family: monospace;\">").append(formattedSignature).append("</div>");
+                    hoverInfo.append(formattedSignature);
                     
                     if (docMatcher.find()) {
                         String documentation = docMatcher.group(1);
                         String cleanDoc = cleanDocumentation(documentation);
                         if (!cleanDoc.isEmpty()) {
-                            hoverInfo.append("<br><br>").append(cleanDoc);
+                            hoverInfo.append("\n\n").append(cleanDoc);
                         }
                     }
                     
-                    hoverInfo.append("</body></html>");
                     return hoverInfo.toString();
                 }
             }
             
             // If no documentation found, just return the signature
-            return "<html><body><div style=\"font-family: monospace;\">" + formattedSignature + "</div></body></html>";
+            return formattedSignature;
         }
         
         return null;
@@ -222,24 +227,22 @@ public class RebecaTextHover implements ITextHover {
                     Matcher docMatcher = docPattern.matcher(classBody);
                     
                     StringBuilder hoverInfo = new StringBuilder();
-                    hoverInfo.append("<html><body>");
-                    hoverInfo.append("<div style=\"font-family: monospace;\">").append(formattedSignature).append("</div>");
+                    hoverInfo.append(formattedSignature);
                     
                     if (docMatcher.find()) {
                         String documentation = docMatcher.group(1);
                         String cleanDoc = cleanDocumentation(documentation);
                         if (!cleanDoc.isEmpty()) {
-                            hoverInfo.append("<br><br>").append(cleanDoc);
+                            hoverInfo.append("\n\n").append(cleanDoc);
                         }
                     }
                     
-                    hoverInfo.append("</body></html>");
                     return hoverInfo.toString();
                 }
             }
             
             // If no documentation found, just return the signature
-            return "<html><body><div style=\"font-family: monospace;\">" + formattedSignature + "</div></body></html>";
+            return formattedSignature;
         }
         
         return null;
@@ -283,62 +286,62 @@ public class RebecaTextHover implements ITextHover {
         // Remove asterisks from the beginning of lines (common in /** */ comments)
         cleaned = cleaned.replaceAll("(?m)^\\s*\\*\\s*", "");
         
-        // Convert line breaks to HTML <br> tags to preserve multi-line formatting
-        cleaned = cleaned.replaceAll("\\r?\\n", "<br>");
+        // Remove extra leading/trailing whitespace from lines but preserve line structure
+        String[] lines = cleaned.split("\\r?\\n");
+        StringBuilder result = new StringBuilder();
         
-        // Replace multiple spaces with single spaces, but preserve line breaks
-        cleaned = cleaned.replaceAll("[ \\t]+", " ");
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i].trim();
+            if (!line.isEmpty()) {
+                result.append(line);
+                if (i < lines.length - 1) {
+                    result.append("\n");
+                }
+            }
+        }
         
-        // Format @something text as bold
-        cleaned = cleaned.replaceAll("(@\\w+)", "<b>@$1</b>");
+        cleaned = result.toString();
         
-        // Escape other HTML characters to prevent issues
-        cleaned = cleaned.replaceAll("&", "&amp;");
-        cleaned = cleaned.replaceAll("<(?!/?br>|/?b>)", "&lt;");
-        cleaned = cleaned.replaceAll("(?<!</?br)>(?!/?b>)", "&gt;");
+        // Format @something text to make it stand out using text formatting
+        cleaned = cleaned.replaceAll("(@\\w+)", "**$1**");
         
         return cleaned;
     }
     
     /**
-     * Formats method/class signatures to make parameters bold
+     * Formats method/class signatures to make parameters stand out
      */
     private String formatSignature(String signature) {
         if (signature == null) {
             return "";
         }
         
-        // Escape HTML characters first
-        String formatted = signature.replaceAll("&", "&amp;")
-                                   .replaceAll("<", "&lt;")
-                                   .replaceAll(">", "&gt;");
-        
         // Find and format parameters within parentheses
         Pattern paramPattern = Pattern.compile("\\(([^)]*)\\)");
-        Matcher paramMatcher = paramPattern.matcher(formatted);
+        Matcher paramMatcher = paramPattern.matcher(signature);
         
         if (paramMatcher.find()) {
             String params = paramMatcher.group(1).trim();
             if (!params.isEmpty()) {
-                // Split parameters by comma and make each one bold
+                // Split parameters by comma and format them to stand out
                 String[] paramArray = params.split(",");
-                StringBuilder boldParams = new StringBuilder();
+                StringBuilder formattedParams = new StringBuilder();
                 
                 for (int i = 0; i < paramArray.length; i++) {
                     String param = paramArray[i].trim();
                     if (!param.isEmpty()) {
-                        boldParams.append("<b>").append(param).append("</b>");
+                        formattedParams.append("[").append(param).append("]");
                         if (i < paramArray.length - 1) {
-                            boldParams.append(", ");
+                            formattedParams.append(", ");
                         }
                     }
                 }
                 
-                formatted = paramMatcher.replaceFirst("(" + boldParams.toString() + ")");
+                return paramMatcher.replaceFirst("(" + formattedParams.toString() + ")");
             }
         }
         
-        return formatted;
+        return signature;
     }
     
     /**
