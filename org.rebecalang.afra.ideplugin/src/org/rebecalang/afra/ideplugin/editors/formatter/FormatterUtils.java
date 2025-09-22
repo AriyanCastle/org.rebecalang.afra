@@ -1,45 +1,33 @@
 package org.rebecalang.afra.ideplugin.editors.formatter;
 
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IRegion;
-
 /**
- * Fixed formatter for Rebeca (.rebeca) files that correctly handles comments
+ * Utility class containing shared formatting logic for Afra language formatters
  */
-public class FixedRebecaFormatter implements IAfraFormatter {
+public class FormatterUtils {
     
     private static final String INDENT = "\t";
-    private static final String NEW_LINE = System.getProperty("line.separator");
     
-    @Override
-    public String format(IDocument document) {
-        try {
-            String content = document.get();
-            return formatContent(content);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return document.get();
-        }
+    /**
+     * Private constructor to prevent instantiation
+     */
+    private FormatterUtils() {
+        // Utility class
     }
     
-    @Override
-    public String format(IDocument document, IRegion region) {
-        try {
-            String content = document.get(region.getOffset(), region.getLength());
-            return formatContent(content);
-        } catch (BadLocationException e) {
-            e.printStackTrace();
-            return document.get();
-        }
-    }
-    
-    @Override
-    public String getIndentString() {
+    /**
+     * Get the indentation string used by formatters
+     * @return The indentation string (tab character)
+     */
+    public static String getIndentString() {
         return INDENT;
     }
-
-    private String formatContent(String content) {
+    
+    /**
+     * Format content by applying all formatting steps in sequence
+     * @param content The content to format
+     * @return The formatted content
+     */
+    public static String formatContent(String content) {
         if (content == null || content.isEmpty()) return "";
 
         String normalized = normalizeBrackets(content);
@@ -51,7 +39,7 @@ public class FixedRebecaFormatter implements IAfraFormatter {
     }
 
     /** Step 1 & 2: Normalize spaces and move { } to separate lines (ignoring comments) */
-    private static String normalizeBrackets(String input) {
+    public static String normalizeBrackets(String input) {
         String code = input.replaceAll("\r\n", "\n"); // normalize line endings
         code = code.replaceAll("[ \t]+", " ");        // collapse multiple spaces
 
@@ -89,7 +77,7 @@ public class FixedRebecaFormatter implements IAfraFormatter {
     }
 
     /** Step 3: Indent lines based on scope depth */
-    private static String applyIndentation(String normalized) {
+    public static String applyIndentation(String normalized) {
         String[] lines = normalized.split("\n");
         StringBuilder indented = new StringBuilder();
         int indent = 0;
@@ -125,12 +113,12 @@ public class FixedRebecaFormatter implements IAfraFormatter {
     }
 
     /** Step 4: Collapse multiple blank lines into one */
-    private static String collapseBlankLines(String text) {
+    public static String collapseBlankLines(String text) {
         return text.replaceAll("(?m)^[ \t]*\n{2,}", "\n");
     }
 
     /** Step 5: Add extra newline after } unless followed by else/else if */
-    private static String addNewlineAfterClosingBraces(String text) {
+    public static String addNewlineAfterClosingBraces(String text) {
         String[] lines = text.split("\n");
         StringBuilder result = new StringBuilder();
 
@@ -157,5 +145,4 @@ public class FixedRebecaFormatter implements IAfraFormatter {
 
         return result.toString();
     }
-    
 }

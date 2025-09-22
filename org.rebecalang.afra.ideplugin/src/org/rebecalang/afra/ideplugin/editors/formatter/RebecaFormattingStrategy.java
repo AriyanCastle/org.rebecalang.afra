@@ -10,10 +10,10 @@ import org.eclipse.jface.text.formatter.IFormattingStrategy;
  */
 public class RebecaFormattingStrategy implements IFormattingStrategy {
     
-    private final FixedRebecaFormatter formatter;
+    private final RebecaFormatter formatter;
     
     public RebecaFormattingStrategy() {
-        this.formatter = new FixedRebecaFormatter();
+        this.formatter = new RebecaFormatter();
     }
     
     @Override
