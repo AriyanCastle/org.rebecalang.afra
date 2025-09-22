@@ -23,6 +23,7 @@ import org.rebecalang.compiler.CompilerConfig;
 import org.rebecalang.compiler.modelcompiler.RebecaModelCompiler;
 import org.rebecalang.compiler.modelcompiler.SymbolTable;
 import org.rebecalang.compiler.modelcompiler.corerebeca.objectmodel.FieldDeclaration;
+import org.rebecalang.compiler.modelcompiler.corerebeca.objectmodel.FormalParameterDeclaration;
 import org.rebecalang.compiler.modelcompiler.corerebeca.objectmodel.MainRebecDefinition;
 import org.rebecalang.compiler.modelcompiler.corerebeca.objectmodel.MethodDeclaration;
 import org.rebecalang.compiler.modelcompiler.corerebeca.objectmodel.ReactiveClassDeclaration;
@@ -594,14 +595,13 @@ public class RebecaContextAwareCompletionProcessor implements IContentAssistProc
 	private void addMethodParameterCompletions(MethodDeclaration method, CompletionContext context, 
 			ArrayList<ICompletionProposal> proposals) {
 		if (method.getFormalParameters() != null) {
-			for (FieldDeclaration param : method.getFormalParameters()) {
-				if (param.getVariableDeclarators() != null) {
-					for (VariableDeclarator vd : param.getVariableDeclarators()) {
-						if (vd.getVariableName() != null && 
-							vd.getVariableName().toLowerCase().startsWith(context.partialText.toLowerCase())) {
-							proposals.add(new CompletionProposal(vd.getVariableName(), 
-								context.replacementOffset, context.replacementLength, vd.getVariableName().length()));
-						}
+			for (FormalParameterDeclaration param : method.getFormalParameters()) {
+				if (param.getVariableDeclarator() != null && 
+					param.getVariableDeclarator().getVariableName() != null) {
+					String paramName = param.getVariableDeclarator().getVariableName();
+					if (paramName.toLowerCase().startsWith(context.partialText.toLowerCase())) {
+						proposals.add(new CompletionProposal(paramName, 
+							context.replacementOffset, context.replacementLength, paramName.length()));
 					}
 				}
 			}
