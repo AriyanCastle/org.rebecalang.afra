@@ -16,15 +16,11 @@ import org.rebecalang.afra.ideplugin.editors.formatter.RebecaFormattingStrategy;
 import org.eclipse.jface.text.reconciler.IReconciler;
 import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.jface.text.ITextHover;
-import org.eclipse.jface.text.IInformationControl;
-import org.eclipse.jface.text.IInformationControlCreator;
-import org.eclipse.jface.internal.text.html.BrowserInformationControl;
-import org.eclipse.swt.widgets.Shell;
 
 
 public class RebecaSourceViewerConfiguration extends GeneralSourceViewerConfiguration {
 
-	private final RebecaEditor editor;
+	private RebecaEditor editor;
 
 	public RebecaSourceViewerConfiguration(ColorManager cm, RebecaEditor editor) {
 		super(cm);
@@ -101,18 +97,6 @@ public class RebecaSourceViewerConfiguration extends GeneralSourceViewerConfigur
             return new RebecaTextHover(this.editor);
         }
         return super.getTextHover(sourceViewer, contentType);
-    }
-    
-    @Override
-    public IInformationControlCreator getInformationControlCreator(ISourceViewer sourceViewer) {
-        return new IInformationControlCreator() {
-            @Override
-            public IInformationControl createInformationControl(Shell parent) {
-                // Create a browser-based information control that can render HTML
-                // true for resizable, true for sticky (F2 functionality)
-                return new BrowserInformationControl(parent, true, true);
-            }
-        };
     }
 	
 }
