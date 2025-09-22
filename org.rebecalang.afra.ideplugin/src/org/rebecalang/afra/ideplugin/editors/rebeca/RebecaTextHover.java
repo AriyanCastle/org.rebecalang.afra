@@ -299,9 +299,9 @@ public class RebecaTextHover implements ITextHover, ITextHoverExtension {
         cleaned = cleaned.replaceAll("(@\\w+)", "<b>$1</b>");
         
         // Escape other HTML characters to prevent issues
-        cleaned = cleaned.replaceAll("&", "&amp;");
-        cleaned = cleaned.replaceAll("<(?!/?br>|/?b>)", "&lt;");
-        cleaned = cleaned.replaceAll("(?<!</?br)>(?!/?b>)", "&gt;");
+        //cleaned = cleaned.replaceAll("&", "&amp;");
+        //cleaned = cleaned.replaceAll("<(?!/?br>|/?b>)", "&lt;");
+        //cleaned = cleaned.replaceAll("(?<!</?br)>(?!/?b>)", "&gt;");
         
         return cleaned;
     }
