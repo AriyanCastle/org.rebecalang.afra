@@ -1,6 +1,10 @@
 reactiveclass Philosopher(3) {
 	/**
 	Here is class documentation
+
+	More details in a new line
+
+	@something_bold
 	**/
 	knownrebecs {
 		Chopstick chpL, chpR;
@@ -16,8 +20,10 @@ reactiveclass Philosopher(3) {
 		self.arrive();
 	}
 
-	msgsrv arrive() {
-		/** here is a method documentation **/
+	msgsrv arrive(int x, boolean y) {
+		/** here is a method documentation 
+		THIS WON'N compile because of signiture change to show Javadoc 
+		**/
 		chpL.request();
 	}
 	msgsrv permit() {
