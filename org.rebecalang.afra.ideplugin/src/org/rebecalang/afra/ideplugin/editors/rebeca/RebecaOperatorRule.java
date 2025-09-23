@@ -5,15 +5,6 @@ import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-/**
- * Rule for highlighting operators in Rebeca code.
- * Supports:
- * - Arithmetic operators: +, -, *, /, %
- * - Logical operators: &&, ||, !
- * - Comparison operators: ==, !=, <, >, <=, >=
- * - Assignment operators: =
- * - Other operators: ?, :
- */
 public class RebecaOperatorRule implements IRule {
     
     private IToken operatorToken;
@@ -37,7 +28,6 @@ public class RebecaOperatorRule implements IRule {
                 return operatorToken;
                 
             case '=':
-                // Check for == 
                 int next = scanner.read();
                 if (next == '=') {
                     return operatorToken;
@@ -47,7 +37,6 @@ public class RebecaOperatorRule implements IRule {
                 }
                 
             case '!':
-                // Check for !=
                 next = scanner.read();
                 if (next == '=') {
                     return operatorToken;
@@ -57,7 +46,6 @@ public class RebecaOperatorRule implements IRule {
                 }
                 
             case '<':
-                // Check for <=
                 next = scanner.read();
                 if (next == '=') {
                     return operatorToken;
@@ -67,7 +55,6 @@ public class RebecaOperatorRule implements IRule {
                 }
                 
             case '>':
-                // Check for >=
                 next = scanner.read();
                 if (next == '=') {
                     return operatorToken;
@@ -77,7 +64,6 @@ public class RebecaOperatorRule implements IRule {
                 }
                 
             case '&':
-                // Check for &&
                 next = scanner.read();
                 if (next == '&') {
                     return operatorToken;
@@ -88,7 +74,6 @@ public class RebecaOperatorRule implements IRule {
                 }
                 
             case '|':
-                // Check for ||
                 next = scanner.read();
                 if (next == '|') {
                     return operatorToken;
