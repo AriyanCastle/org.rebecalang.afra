@@ -18,6 +18,7 @@ public final class RebecaTextAttribute extends GeneralTextAttribute {
 	public static final RebecaTextAttribute OPERATOR = new RebecaTextAttribute();
 	public static final RebecaTextAttribute BUILTIN_FUNCTION = new RebecaTextAttribute();
 	public static final RebecaTextAttribute VARIABLE = new RebecaTextAttribute();
+	public static final RebecaTextAttribute PUNCTUATION = new RebecaTextAttribute();
 
 	private RebecaTextAttribute()
 	{
@@ -41,6 +42,7 @@ public final class RebecaTextAttribute extends GeneralTextAttribute {
 		readColor(OPERATOR, "Rebeca.Operator");
 		readColor(BUILTIN_FUNCTION, "Rebeca.BuiltinFunction");
 		readColor(VARIABLE, "Rebeca.Variable");
+		readColor(PUNCTUATION, "Rebeca.Punctuation");
 		System.out.println("[Rebeca Syntax] Enhanced syntax highlighting initialized successfully!");
 	}
 

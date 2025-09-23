@@ -26,7 +26,7 @@ public class RebecaScanner extends RuleBasedScanner {
 
 	public RebecaScanner(ColorManager manager)
 	{
-		System.out.println("[Rebeca Scanner] Initializing enhanced syntax highlighting...");
+		System.out.println("[Rebeca Scanner] Initializing Phase 1 enhanced syntax highlighting...");
 		
 		// Create tokens for different categories
 		IToken keywordToken = new Token(RebecaTextAttribute.KEY_WORD.getTextAttribute(manager));
@@ -34,9 +34,25 @@ public class RebecaScanner extends RuleBasedScanner {
 		IToken builtinToken = new Token(RebecaTextAttribute.BUILTIN_FUNCTION.getTextAttribute(manager));
 		IToken classNameToken = new Token(RebecaTextAttribute.CLASS_NAME.getTextAttribute(manager));
 		IToken methodNameToken = new Token(RebecaTextAttribute.METHOD_NAME.getTextAttribute(manager));
+		IToken numberToken = new Token(RebecaTextAttribute.NUMBER.getTextAttribute(manager));
+		IToken operatorToken = new Token(RebecaTextAttribute.OPERATOR.getTextAttribute(manager));
+		IToken punctuationToken = new Token(RebecaTextAttribute.PUNCTUATION.getTextAttribute(manager));
 		IToken defaultToken = new Token(RebecaTextAttribute.DEFAULT.getTextAttribute(manager));
 
 		List<IRule> rules = new ArrayList<IRule>();
+
+		// Phase 1: Add new advanced highlighting rules
+		// Numbers: integers, decimals, hex, binary (orange)
+		rules.add(new RebecaNumberRule(numberToken));
+		System.out.println("[Rebeca Scanner] Added number highlighting (orange)");
+		
+		// Operators: arithmetic, logical, comparison (dark gray)  
+		rules.add(new RebecaOperatorRule(operatorToken));
+		System.out.println("[Rebeca Scanner] Added operator highlighting (dark gray)");
+		
+		// Punctuation: braces, parentheses, brackets, semicolons, commas (medium gray)
+		rules.add(new RebecaPunctuationRule(punctuationToken));
+		System.out.println("[Rebeca Scanner] Added punctuation highlighting (medium gray)");
 
 		// Enhanced word rule for identifiers
 		WordRule wordRule = new WordRule(new IWordDetector()
@@ -54,13 +70,11 @@ public class RebecaScanner extends RuleBasedScanner {
 		// Add keywords (keep purple and bold)
 		for (String keyword : rebecaKeywords) {
 			wordRule.addWord(keyword, keywordToken);
-			System.out.println("[Rebeca Scanner] Added keyword: " + keyword);
 		}
 		
 		// Add types (dark blue)
 		for (String type : rebecaTypes) {
 			wordRule.addWord(type, typeToken);
-			System.out.println("[Rebeca Scanner] Added type: " + type);
 		}
 		
 		// Add built-in functions and literals (medium blue)
@@ -82,12 +96,14 @@ public class RebecaScanner extends RuleBasedScanner {
 		rules.toArray(result);
 		setRules(result);
 		
-		System.out.println("[Rebeca Scanner] Enhanced scanner initialized with " + rules.size() + " rules");
-		System.out.println("[Rebeca Scanner] Added class name highlighting (brown)");
-		System.out.println("[Rebeca Scanner] Added method name highlighting (dark green)");
-		System.out.println("[Rebeca Scanner] Keywords: " + rebecaKeywords.length + " (purple)");
-		System.out.println("[Rebeca Scanner] Types: " + rebecaTypes.length + " (dark blue)");
-		System.out.println("[Rebeca Scanner] Built-ins: " + rebecaBuiltins.length + " (medium blue)");
+		System.out.println("[Rebeca Scanner] Phase 1 enhanced scanner initialized with " + rules.size() + " rules");
+		System.out.println("[Rebeca Scanner] ✅ Numbers: integers, decimals, hex, binary (orange)");
+		System.out.println("[Rebeca Scanner] ✅ Operators: +,-,*,/,%,==,!=,<,>,<=,>=,&&,||,! (dark gray)");
+		System.out.println("[Rebeca Scanner] ✅ Punctuation: {}()[];,. (medium gray)");
+		System.out.println("[Rebeca Scanner] ✅ Keywords: " + rebecaKeywords.length + " (purple, bold)");
+		System.out.println("[Rebeca Scanner] ✅ Types: " + rebecaTypes.length + " (dark blue)");
+		System.out.println("[Rebeca Scanner] ✅ Built-ins: " + rebecaBuiltins.length + " (medium blue)");
+		System.out.println("[Rebeca Scanner] 🔄 Class/Method names ready for Phase 2 contextual detection");
 	}
 
 }

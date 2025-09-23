@@ -24,6 +24,7 @@ public class RebecaPreferenceInitializer extends GeneralPreferenceInitializer {
 		setDefaultAttr(preferences, "Rebeca.Operator", "105,105,105");      // Dark gray for operators
 		setDefaultAttr(preferences, "Rebeca.BuiltinFunction", "30,144,255"); // Medium blue for built-ins
 		setDefaultAttr(preferences, "Rebeca.Variable", "184,134,11");       // Dark goldenrod for variables
+		setDefaultAttr(preferences, "Rebeca.Punctuation", "128,128,128");   // Medium gray for punctuation
 		
 		System.out.println("[Rebeca Preferences] Enhanced color scheme initialized for light mode");
 	}
