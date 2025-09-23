@@ -243,12 +243,18 @@ public class RebecaRefactoringParticipant {
         }
         
         // Pattern for class usage in knownrebecs: ClassName varName1, varName2, ...;
-        Pattern knownrebecPattern = Pattern.compile("\\b(" + Pattern.quote(className) + ")\\s+[\\w\\s,]+;");
-        matcher = knownrebecPattern.matcher(content);
-        while (matcher.find()) {
-            int offset = matcher.start(1);
-            occurrences.add(new SymbolOccurrence(file, offset, className.length(), className, 
-                                               SymbolType.CLASS_NAME, new SymbolContext(null, null, false)));
+        // Restrict search to inside the knownrebecs section and compute absolute offsets correctly
+        String knownrebecsBody = getKnownrebecssection(content);
+        if (!knownrebecsBody.isEmpty()) {
+            int knownrebecsBodyOffset = findKnownrebecsOffset(content);
+            Pattern knownrebecsClassPattern = Pattern.compile("(^|\\b)(" + Pattern.quote(className) + ")\\s+[^;\r\n]+;", Pattern.MULTILINE);
+            Matcher knownrebecsMatcher = knownrebecsClassPattern.matcher(knownrebecsBody);
+            while (knownrebecsMatcher.find()) {
+                int relativeOffset = knownrebecsMatcher.start(2);
+                int absoluteOffset = knownrebecsBodyOffset + relativeOffset;
+                occurrences.add(new SymbolOccurrence(file, absoluteOffset, className.length(), className,
+                                                   SymbolType.CLASS_NAME, new SymbolContext(null, null, false)));
+            }
         }
         
         return occurrences;
