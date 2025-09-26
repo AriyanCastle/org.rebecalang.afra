@@ -17,6 +17,7 @@ public final class RebecaTextAttribute extends GeneralTextAttribute {
 	public static final RebecaTextAttribute BUILTIN_FUNCTION = new RebecaTextAttribute();
 	public static final RebecaTextAttribute VARIABLE = new RebecaTextAttribute();
 	public static final RebecaTextAttribute PUNCTUATION = new RebecaTextAttribute();
+	public static final RebecaTextAttribute ANNOTATION = new RebecaTextAttribute();
 
 	private RebecaTextAttribute()
 	{
@@ -38,6 +39,7 @@ public final class RebecaTextAttribute extends GeneralTextAttribute {
 		readColor(BUILTIN_FUNCTION, "Rebeca.BuiltinFunction");
 		readColor(VARIABLE, "Rebeca.Variable");
 		readColor(PUNCTUATION, "Rebeca.Punctuation");
+		readColor(ANNOTATION, "Rebeca.Annotation");
 	}
 
 }

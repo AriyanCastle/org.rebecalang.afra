@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.rebecalang.afra.ideplugin.editors.ColorManager;
 import org.rebecalang.afra.ideplugin.editors.WordHighlightManager;
+import org.rebecalang.afra.ideplugin.editors.WordHighlightingUtil;
 
 public class RebecaEditor extends TextEditor {
 
@@ -68,21 +69,12 @@ public class RebecaEditor extends TextEditor {
         projectionSupport = new ProjectionSupport(viewer,getAnnotationAccess(),getSharedColors());
 		projectionSupport.install();
 		
-		//turn projection mode on
 		viewer.doOperation(ProjectionViewer.TOGGLE);
 		
 		annotationModel = viewer.getProjectionAnnotationModel();
 		
-		// Initialize word highlighting
-		wordHighlightManager = new WordHighlightManager(viewer);
+		wordHighlightManager = new WordHighlightManager(viewer, WordHighlightingUtil.FileType.REBECA);
 		setupWordHighlighting(viewer);
-		
-//		Iterator<Annotation> annotationIterator = annotationModel.getAnnotationIterator();
-//		while(annotationIterator.hasNext()) {
-//			Annotation a = annotationIterator.next();
-//			String text = a.getText();
-//			System.out.println(text);
-//		}
 		
     }
 	private Annotation[] oldAnnotations;

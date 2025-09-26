@@ -19,6 +19,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.rebecalang.afra.ideplugin.editors.WordHighlightManager;
+import org.rebecalang.afra.ideplugin.editors.WordHighlightingUtil;
 
 public class RebecaPropEditor extends TextEditor {
 	
@@ -64,13 +65,11 @@ public class RebecaPropEditor extends TextEditor {
         projectionSupport = new ProjectionSupport(viewer,getAnnotationAccess(),getSharedColors());
 		projectionSupport.install();
 		
-		//turn projection mode on
 		viewer.doOperation(ProjectionViewer.TOGGLE);
 		
 		annotationModel = viewer.getProjectionAnnotationModel();
 		
-		// Initialize word highlighting
-		wordHighlightManager = new WordHighlightManager(viewer);
+		wordHighlightManager = new WordHighlightManager(viewer, WordHighlightingUtil.FileType.PROPERTY);
 		setupWordHighlighting(viewer);
 		
     }

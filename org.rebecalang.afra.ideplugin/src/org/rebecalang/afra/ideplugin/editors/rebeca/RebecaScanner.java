@@ -12,29 +12,21 @@ import org.eclipse.jface.text.rules.WordRule;
 import org.rebecalang.afra.ideplugin.editors.ColorManager;
 
 public class RebecaScanner extends RuleBasedScanner {
-	private static final String[] rebecaKeywords = {"reactiveclass", "if", "else",
-			"msgsrv", "knownrebecs", "statevars", "main", "self", "sender",
-			"externalclass", "sends", "of", "globalvariables"};
-	
-	private static final String[] rebecaTypes = {"boolean", "byte", "short", "int", "bitint"};
-	
-	private static final String[] rebecaBuiltins = {"pow", "after", "deadline", "delay", "true", "false"};
-	
 
 	public RebecaScanner(ColorManager manager)
 	{
 		IToken keywordToken = new Token(RebecaTextAttribute.KEY_WORD.getTextAttribute(manager));
 		IToken typeToken = new Token(RebecaTextAttribute.TYPE.getTextAttribute(manager));
 		IToken builtinToken = new Token(RebecaTextAttribute.BUILTIN_FUNCTION.getTextAttribute(manager));
-		IToken classNameToken = new Token(RebecaTextAttribute.CLASS_NAME.getTextAttribute(manager));
-		IToken methodNameToken = new Token(RebecaTextAttribute.METHOD_NAME.getTextAttribute(manager));
 		IToken numberToken = new Token(RebecaTextAttribute.NUMBER.getTextAttribute(manager));
 		IToken operatorToken = new Token(RebecaTextAttribute.OPERATOR.getTextAttribute(manager));
 		IToken punctuationToken = new Token(RebecaTextAttribute.PUNCTUATION.getTextAttribute(manager));
+		IToken annotationToken = new Token(RebecaTextAttribute.ANNOTATION.getTextAttribute(manager));
 		IToken defaultToken = new Token(RebecaTextAttribute.DEFAULT.getTextAttribute(manager));
 
 		List<IRule> rules = new ArrayList<IRule>();
 
+		rules.add(new RebecaAnnotationRule(annotationToken));
 		rules.add(new RebecaNumberRule(numberToken));
 		rules.add(new RebecaOperatorRule(operatorToken));
 		rules.add(new RebecaPunctuationRule(punctuationToken));
@@ -51,15 +43,15 @@ public class RebecaScanner extends RuleBasedScanner {
 			}
 		}, defaultToken);
 
-		for (String keyword : rebecaKeywords) {
+		for (String keyword : RebecaConstants.KEYWORDS) {
 			wordRule.addWord(keyword, keywordToken);
 		}
 		
-		for (String type : rebecaTypes) {
+		for (String type : RebecaConstants.TYPES) {
 			wordRule.addWord(type, typeToken);
 		}
 		
-		for (String builtin : rebecaBuiltins) {
+		for (String builtin : RebecaConstants.BUILTINS) {
 			wordRule.addWord(builtin, builtinToken);
 		}
 		

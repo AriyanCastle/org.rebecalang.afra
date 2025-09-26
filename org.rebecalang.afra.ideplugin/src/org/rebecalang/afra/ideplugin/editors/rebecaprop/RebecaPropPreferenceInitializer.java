@@ -7,26 +7,18 @@ import org.rebecalang.afra.ideplugin.editors.GeneralPreferenceInitializer;
 public class RebecaPropPreferenceInitializer extends GeneralPreferenceInitializer {
 	@Override
 	public void initializeDefaultPreferences(){
-		
 		IPreferenceStore preferences = Activator.getDefault().getPreferenceStore();
-		/*preferences.setDefault("RebecaProp.SingleLineComment", "00,128,128");
-		preferences.setDefault("RebecaProp.MultiLineComment", "00,128,128");
-		preferences.setDefault("RebecaProp.String", "00,00,128");
-		preferences.setDefault("RebecaProp.Default", "00,00,00");
-		preferences.setDefault("RebecaProp.Keyword", "128,00,128");*/
-		/*Preferences preferences = RebecaUIPlugin.getPlugin()
-				.getPluginPreferences();
-		*/
-		setDefaultAttr(preferences, "RebecaProp.SingleLineComment", "00,128,128");
-		setDefaultAttr(preferences, "RebecaProp.MultiLineComment", "00,128,128");
-		setDefaultAttr(preferences, "RebecaProp.String", "00,00,128");
-		setDefaultAttr(preferences, "RebecaProp.Default", "00,00,00");
-		setDefault(preferences, "RebecaProp.KeyWord", "128,00,128", true);
 		
-		// Enhanced property file syntax highlighting preferences
-		setDefaultAttr(preferences, "RebecaProp.TemporalOperator", "255,140,00");    // Orange for temporal operators (G, F, etc.)
-		setDefaultAttr(preferences, "RebecaProp.PropertyLiteral", "30,144,255");     // Medium blue for boolean literals and common properties
-		
-		System.out.println("[RebecaProp Preferences] Enhanced property file color scheme initialized");
+		setDefaultAttr(preferences, "RebecaProp.SingleLineComment", "63,127,95");
+		setDefaultAttr(preferences, "RebecaProp.MultiLineComment", "63,127,95");
+		setDefaultAttr(preferences, "RebecaProp.String", "42,0,255");
+		setDefaultAttr(preferences, "RebecaProp.Default", "0,0,0");
+		setDefault(preferences, "RebecaProp.KeyWord", "127,0,85", true);
+		setDefaultAttr(preferences, "RebecaProp.TemporalOperator", "255,140,0");
+		setDefaultAttr(preferences, "RebecaProp.PropertyLiteral", "139,0,139");
+		setDefaultAttr(preferences, "RebecaProp.Number", "176,0,64");
+		setDefaultAttr(preferences, "RebecaProp.Operator", "100,100,100");
+		setDefaultAttr(preferences, "RebecaProp.Punctuation", "128,128,128");
+		setDefaultAttr(preferences, "RebecaProp.BuiltinFunction", "255,140,0");
 	}
 }
