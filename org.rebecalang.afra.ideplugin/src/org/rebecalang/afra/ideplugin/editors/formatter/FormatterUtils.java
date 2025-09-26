@@ -30,7 +30,7 @@ public class FormatterUtils {
     public static String formatContent(String content) {
         if (content == null || content.isEmpty()) return "";
 
-        String normalized = normalizeBrackets(content);
+        String normalized = attachOpeningBraces(normalizeBrackets(content));
         String indented = applyIndentation(normalized);
         String collapsed = collapseBlankLines(indented);
         String withSpacing = addNewlineAfterClosingBraces(collapsed);
@@ -38,7 +38,7 @@ public class FormatterUtils {
         return withSpacing.trim();
     }
 
-    /** Step 1 & 2: Normalize spaces and move { } to separate lines (ignoring comments) */
+    /** Step 1: Normalize spaces and move { } to separate lines (ignoring comments) */
     public static String normalizeBrackets(String input) {
         String code = input.replaceAll("\r\n", "\n"); // normalize line endings
         code = code.replaceAll("[ \t]+", " ");        // collapse multiple spaces
@@ -76,6 +76,31 @@ public class FormatterUtils {
         return normalized.toString();
     }
 
+    /** step 2: as discussed in the meeting, get { to the previous line for more standard formatting */
+    public static String attachOpeningBraces(String input) {
+        String[] lines = input.split("\n");
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i].trim();
+
+            if (line.equals("{")) {
+                // merge with previous line
+                int lastNewline = result.lastIndexOf("\n");
+                if (lastNewline >= 0) {
+                    result.deleteCharAt(result.length() - 1); // remove last newline
+                    result.append(" {").append("\n");
+                } else {
+                    // if it's the very first line (edge case)
+                    result.append("{\n");
+                }
+            } else {
+                result.append(line).append("\n");
+            }
+        }
+
+        return result.toString();
+    }
     /** Step 3: Indent lines based on scope depth */
     public static String applyIndentation(String normalized) {
         String[] lines = normalized.split("\n");

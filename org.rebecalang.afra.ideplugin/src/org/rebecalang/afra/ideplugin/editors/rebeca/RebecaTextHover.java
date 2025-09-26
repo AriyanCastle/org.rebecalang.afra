@@ -103,9 +103,7 @@ public class RebecaTextHover implements ITextHover, ITextHoverExtension {
             if (methodMatcher.find()) {
                 return new HoverContext(HoverType.METHOD_CALL, hoveredText);
             }
-            
-            // Check if this is a class instantiation or usage
-        
+                    
             
             // Pattern 1: ClassName identifier(...):(...); (Rebeca class instantiation in main)
             Pattern rebecaClassPattern = Pattern.compile(
