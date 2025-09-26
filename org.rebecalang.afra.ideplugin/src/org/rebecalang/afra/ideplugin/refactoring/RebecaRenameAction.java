@@ -144,23 +144,17 @@ public class RebecaRenameAction extends AbstractHandler {
      */
     private Point getCursorScreenLocation(ISourceViewer sourceViewer) {
         try {
-            // Get word region at cursor
-            IRegion wordRegion = getWordRegion(currentDocument, currentOffset);
-            if (wordRegion == null) {
-                return null;
-            }
-            
             // Get the text widget
-            Control textWidget = sourceViewer.getTextWidget();
+            org.eclipse.swt.custom.StyledText textWidget = sourceViewer.getTextWidget();
             if (textWidget == null) {
                 return null;
             }
             
-            // Convert document offset to widget offset
-            int widgetOffset = sourceViewer.modelOffset2WidgetOffset(wordRegion.getOffset());
+            // Get current caret position in the text widget
+            int caretOffset = textWidget.getCaretOffset();
             
-            // Get the location of the offset in the text widget
-            Point location = ((org.eclipse.swt.custom.StyledText) textWidget).getLocationAtOffset(widgetOffset);
+            // Get the location of the caret in the text widget
+            Point location = textWidget.getLocationAtOffset(caretOffset);
             
             // Convert to screen coordinates
             return textWidget.toDisplay(location);
