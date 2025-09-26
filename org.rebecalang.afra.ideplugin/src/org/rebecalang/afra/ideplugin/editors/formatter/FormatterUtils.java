@@ -6,7 +6,12 @@ package org.rebecalang.afra.ideplugin.editors.formatter;
 public class FormatterUtils {
     
     private static final String INDENT = "\t";
-    
+    private static final String[] binaryOperators = {"+","-","*","/","%",
+    "=","+=","-=","/=","*=","%=",
+    "&&","||","&","|",
+    ">","<",">=","<=", "==","!="
+    };
+    private static final String[] unaryOperators = {"++","--","!"};
     /**
      * Private constructor to prevent instantiation
      */
@@ -30,12 +35,13 @@ public class FormatterUtils {
     public static String formatContent(String content) {
         if (content == null || content.isEmpty()) return "";
 
-        String normalized = attachOpeningBraces(normalizeBrackets(content));
+        String normalized = normalizeBrackets(content);
         String indented = applyIndentation(normalized);
         String collapsed = collapseBlankLines(indented);
         String withSpacing = addNewlineAfterClosingBraces(collapsed);
-
-        return withSpacing.trim();
+        String inlineBraces = attachOpeningBraces(withSpacing);
+        
+        return inlineBraces.trim();
     }
 
     /** Step 1: Normalize spaces and move { } to separate lines (ignoring comments) */
@@ -76,32 +82,7 @@ public class FormatterUtils {
         return normalized.toString();
     }
 
-    /** step 2: as discussed in the meeting, get { to the previous line for more standard formatting */
-    public static String attachOpeningBraces(String input) {
-        String[] lines = input.split("\n");
-        StringBuilder result = new StringBuilder();
-
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i].trim();
-
-            if (line.equals("{")) {
-                // merge with previous line
-                int lastNewline = result.lastIndexOf("\n");
-                if (lastNewline >= 0) {
-                    result.deleteCharAt(result.length() - 1); // remove last newline
-                    result.append(" {").append("\n");
-                } else {
-                    // if it's the very first line (edge case)
-                    result.append("{\n");
-                }
-            } else {
-                result.append(line).append("\n");
-            }
-        }
-
-        return result.toString();
-    }
-    /** Step 3: Indent lines based on scope depth */
+    /** Step 2: Indent lines based on scope depth */
     public static String applyIndentation(String normalized) {
         String[] lines = normalized.split("\n");
         StringBuilder indented = new StringBuilder();
@@ -137,12 +118,12 @@ public class FormatterUtils {
         return indented.toString();
     }
 
-    /** Step 4: Collapse multiple blank lines into one */
+    /** Step 3: Collapse multiple blank lines into one */
     public static String collapseBlankLines(String text) {
         return text.replaceAll("(?m)^[ \t]*\n{2,}", "\n");
     }
 
-    /** Step 5: Add extra newline after } unless followed by else/else if */
+    /** Step 4: Add extra newline after } unless followed by else/else if */
     public static String addNewlineAfterClosingBraces(String text) {
         String[] lines = text.split("\n");
         StringBuilder result = new StringBuilder();
@@ -165,6 +146,34 @@ public class FormatterUtils {
                 } else {
                     result.append("\n"); // last line
                 }
+            }
+        }
+
+        return result.toString();
+    }
+
+    
+    /** step 5: as discussed in the meeting, get { to the previous line for more standard formatting */
+    public static String attachOpeningBraces(String input) {
+        String[] lines = input.split("\n", -1); // keep empty lines
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+
+            // Check if line is just "{" (with optional whitespace around it)
+            if (line.trim().equals("{")) {
+                // remove last newline in result (so we can append " {")
+                int lastNewline = result.lastIndexOf("\n");
+                if (lastNewline >= 0) {
+                    result.deleteCharAt(result.length() - 1);
+                    result.append(" {").append("\n");
+                } else {
+                    // edge case: "{" is the very first line
+                    result.append("{\n");
+                }
+            } else {
+                result.append(line).append("\n");
             }
         }
 
