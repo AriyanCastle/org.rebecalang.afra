@@ -12,17 +12,37 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.window.Window;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- * Handler for renaming Rebeca symbols (Ctrl+Shift+R)
+ * Handler for renaming Rebeca symbols (Alt+Shift+R)
  */
 public class RebecaRenameAction extends AbstractHandler {
+    
+    private Text inlineRenameText;
+    private Shell inlineRenameShell;
+    private String originalSymbolName;
+    private SymbolAnalysisResult currentAnalysisResult;
+    private ITextEditor currentEditor;
+    private IDocument currentDocument;
+    private IFile currentFile;
+    private int currentOffset;
     
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -31,58 +51,39 @@ public class RebecaRenameAction extends AbstractHandler {
             return null;
         }
         
-        ITextEditor textEditor = (ITextEditor) editor;
-        Shell shell = textEditor.getSite().getShell();
+        currentEditor = (ITextEditor) editor;
+        Shell shell = currentEditor.getSite().getShell();
         
         try {
             // Get current selection/cursor position
-            ISelection selection = textEditor.getSelectionProvider().getSelection();
+            ISelection selection = currentEditor.getSelectionProvider().getSelection();
             if (!(selection instanceof ITextSelection)) {
                 showError(shell, "Please place cursor on a symbol to rename.");
                 return null;
             }
             
             ITextSelection textSelection = (ITextSelection) selection;
-            IDocument document = textEditor.getDocumentProvider().getDocument(textEditor.getEditorInput());
+            currentDocument = currentEditor.getDocumentProvider().getDocument(currentEditor.getEditorInput());
+            currentOffset = textSelection.getOffset();
             
             // Get the file and project
-            IFile file = (IFile) textEditor.getEditorInput().getAdapter(IFile.class);
-            if (file == null) {
+            currentFile = (IFile) currentEditor.getEditorInput().getAdapter(IFile.class);
+            if (currentFile == null) {
                 showError(shell, "Could not determine current file.");
                 return null;
             }
             
-            IProject project = file.getProject();
-            
             // Analyze symbol at cursor position
-            SymbolAnalysisResult analysisResult = analyzeSymbolAtPosition(document, textSelection.getOffset());
-            if (analysisResult == null) {
+            currentAnalysisResult = analyzeSymbolAtPosition(currentDocument, currentOffset);
+            if (currentAnalysisResult == null) {
                 showError(shell, "No renameable symbol found at cursor position.");
                 return null;
             }
             
-            // Find all occurrences of the symbol
-            RebecaRefactoringParticipant refactoring = new RebecaRefactoringParticipant(project);
-            List<RebecaRefactoringParticipant.SymbolOccurrence> occurrences = refactoring.findAllOccurrences(
-                analysisResult.symbolName, 
-                analysisResult.symbolType, 
-                file, 
-                textSelection.getOffset()
-            );
+            originalSymbolName = currentAnalysisResult.symbolName;
             
-            if (occurrences.isEmpty()) {
-                showError(shell, "No occurrences found for symbol '" + analysisResult.symbolName + "'.");
-                return null;
-            }
-            
-            // Show rename dialog
-            RebecaRenameDialog dialog = new RebecaRenameDialog(shell, analysisResult.symbolName, 
-                                                              analysisResult.symbolType, occurrences);
-            
-            if (dialog.open() == Window.OK) {
-                // Perform the rename operation
-                performRename(shell, dialog.getNewName(), dialog.getSelectedOccurrences());
-            }
+            // Show inline rename widget
+            showInlineRenameWidget();
             
         } catch (Exception e) {
             showError(shell, "Rename operation failed: " + e.getMessage());
@@ -90,6 +91,211 @@ public class RebecaRenameAction extends AbstractHandler {
         }
         
         return null;
+    }
+    
+    /**
+     * Show the inline rename widget near the cursor position
+     */
+    private void showInlineRenameWidget() {
+        try {
+            // Get the text viewer from the editor
+            ISourceViewer sourceViewer = (ISourceViewer) currentEditor.getAdapter(ISourceViewer.class);
+            if (sourceViewer == null) {
+                return;
+            }
+            
+            // Get cursor position in screen coordinates
+            Point cursorLocation = getCursorScreenLocation(sourceViewer);
+            if (cursorLocation == null) {
+                return;
+            }
+            
+            // Create a small shell for the inline text
+            inlineRenameShell = new Shell(currentEditor.getSite().getShell(), SWT.NO_TRIM | SWT.ON_TOP);
+            inlineRenameShell.setLayout(new org.eclipse.swt.layout.FillLayout());
+            
+            // Create the text widget
+            inlineRenameText = new Text(inlineRenameShell, SWT.BORDER);
+            inlineRenameText.setText(originalSymbolName);
+            inlineRenameText.selectAll();
+            
+            // Calculate size and position
+            Point textSize = inlineRenameText.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+            textSize.x = Math.max(textSize.x, originalSymbolName.length() * 8 + 20); // minimum width
+            
+            inlineRenameShell.setSize(textSize.x, textSize.y);
+            inlineRenameShell.setLocation(cursorLocation.x, cursorLocation.y + 20); // slightly below cursor
+            
+            // Add event handlers
+            setupInlineRenameEventHandlers();
+            
+            // Show the shell and focus the text
+            inlineRenameShell.open();
+            inlineRenameText.setFocus();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            hideInlineRenameWidget();
+        }
+    }
+    
+    /**
+     * Get the cursor location in screen coordinates
+     */
+    private Point getCursorScreenLocation(ISourceViewer sourceViewer) {
+        try {
+            // Get word region at cursor
+            IRegion wordRegion = getWordRegion(currentDocument, currentOffset);
+            if (wordRegion == null) {
+                return null;
+            }
+            
+            // Get the text widget
+            Control textWidget = sourceViewer.getTextWidget();
+            if (textWidget == null) {
+                return null;
+            }
+            
+            // Convert document offset to widget offset
+            int widgetOffset = sourceViewer.modelOffset2WidgetOffset(wordRegion.getOffset());
+            
+            // Get the location of the offset in the text widget
+            Point location = ((org.eclipse.swt.custom.StyledText) textWidget).getLocationAtOffset(widgetOffset);
+            
+            // Convert to screen coordinates
+            return textWidget.toDisplay(location);
+            
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    /**
+     * Setup event handlers for the inline rename widget
+     */
+    private void setupInlineRenameEventHandlers() {
+        // Handle Enter key to confirm rename
+        inlineRenameText.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.keyCode == SWT.CR || e.keyCode == SWT.KEYPAD_CR) {
+                    // Enter pressed - perform rename
+                    performInlineRename();
+                } else if (e.keyCode == SWT.ESC) {
+                    // Escape pressed - cancel rename
+                    hideInlineRenameWidget();
+                }
+            }
+        });
+        
+        // Hide widget when focus is lost
+        inlineRenameText.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                hideInlineRenameWidget();
+            }
+        });
+    }
+    
+    /**
+     * Perform the actual rename operation when Enter is pressed
+     */
+    private void performInlineRename() {
+        try {
+            String newName = inlineRenameText.getText().trim();
+            
+            // Validate the new name
+            if (newName.isEmpty() || newName.equals(originalSymbolName)) {
+                hideInlineRenameWidget();
+                return;
+            }
+            
+            if (!isValidName(newName)) {
+                showError(inlineRenameShell, "Invalid identifier name: " + newName);
+                return;
+            }
+            
+            // Hide the widget first
+            hideInlineRenameWidget();
+            
+            // Find all occurrences and perform rename
+            IProject project = currentFile.getProject();
+            RebecaRefactoringParticipant refactoring = new RebecaRefactoringParticipant(project);
+            List<RebecaRefactoringParticipant.SymbolOccurrence> occurrences = refactoring.findAllOccurrences(
+                currentAnalysisResult.symbolName, 
+                currentAnalysisResult.symbolType, 
+                currentFile, 
+                currentOffset
+            );
+            
+            if (occurrences.isEmpty()) {
+                showError(currentEditor.getSite().getShell(), "No occurrences found for symbol '" + originalSymbolName + "'.");
+                return;
+            }
+            
+            // Perform the rename operation
+            performRename(currentEditor.getSite().getShell(), newName, occurrences);
+            
+        } catch (Exception e) {
+            hideInlineRenameWidget();
+            showError(currentEditor.getSite().getShell(), "Rename operation failed: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Hide the inline rename widget
+     */
+    private void hideInlineRenameWidget() {
+        if (inlineRenameShell != null && !inlineRenameShell.isDisposed()) {
+            inlineRenameShell.dispose();
+        }
+        inlineRenameShell = null;
+        inlineRenameText = null;
+    }
+    
+    /**
+     * Validate if the given name is a valid identifier
+     */
+    private boolean isValidName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return false;
+        }
+        
+        // Check if it's a valid identifier
+        name = name.trim();
+        if (!Character.isJavaIdentifierStart(name.charAt(0))) {
+            return false;
+        }
+        
+        for (int i = 1; i < name.length(); i++) {
+            if (!Character.isJavaIdentifierPart(name.charAt(i))) {
+                return false;
+            }
+        }
+        
+        // Check if it's not a reserved keyword
+        return !isReservedKeyword(name);
+    }
+    
+    /**
+     * Check if the name is a reserved keyword
+     */
+    private boolean isReservedKeyword(String name) {
+        String[] keywords = {
+            "reactiveclass", "msgsrv", "knownrebecs", "statevars", "main", 
+            "if", "else", "while", "for", "true", "false", "self", "sender",
+            "boolean", "int", "byte", "short", "long", "float", "double",
+            "after", "deadline", "delay"
+        };
+        
+        for (String keyword : keywords) {
+            if (keyword.equals(name)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     /**

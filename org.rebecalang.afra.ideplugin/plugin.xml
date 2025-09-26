@@ -280,7 +280,7 @@
 		<key
 			commandId="org.rebecalang.afra.ideplugin.renameSymbol"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-			sequence="Ctrl+Shift+R">
+			sequence="M2+M3+R">
 		</key>
 	</extension>
 </plugin>
