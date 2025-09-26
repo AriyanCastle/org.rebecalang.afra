@@ -625,6 +625,7 @@ public class RebecaRenameAction extends AbstractHandler {
                 System.out.println("[RebecaRename DEBUG] In knownrebecs section, word: '" + word + "'");
                 System.out.println("[RebecaRename DEBUG] beforeWord: '" + beforeWord + "'");
                 System.out.println("[RebecaRename DEBUG] afterWord: '" + afterWord + "'");
+                System.out.println("[RebecaRename DEBUG] full line: '" + line + "'");
                 
                 // Check if this is a class name by looking at the pattern: ClassName varName1, varName2, ...;
                 // beforeWord should only contain whitespace (indentation), and afterWord should have variables
@@ -646,6 +647,32 @@ public class RebecaRenameAction extends AbstractHandler {
                 } else {
                     // Default to instance name in knownrebecs
                     System.out.println("[RebecaRename DEBUG] Defaulting to INSTANCE_NAME");
+                    return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
+                }
+            }
+            
+            // Check if it's in main section  
+            if (isInSection(content, offset, "main")) {
+                System.out.println("[RebecaRename DEBUG] In main section, word: '" + word + "'");
+                System.out.println("[RebecaRename DEBUG] beforeWord: '" + beforeWord + "'");
+                System.out.println("[RebecaRename DEBUG] afterWord: '" + afterWord + "'");
+                System.out.println("[RebecaRename DEBUG] full line: '" + line + "'");
+                
+                // Check if this is a class usage: ClassName instanceName(params):();
+                if (beforeWord.trim().isEmpty() && afterWord.matches("\\s+\\w+\\s*\\([^\\)]*\\)\\s*:\\s*\\([^\\)]*\\)\\s*;.*")) {
+                    // Pattern: ClassName instanceName(params):();
+                    System.out.println("[RebecaRename DEBUG] Detected as CLASS_NAME in main");
+                    return RebecaRefactoringParticipant.SymbolType.CLASS_NAME;
+                }
+                // Check if this is an instance name: ClassName instanceName(params):();
+                else if (beforeWord.matches(".*\\w\\s+$") && afterWord.matches("\\s*\\([^\\)]*\\)\\s*:\\s*\\([^\\)]*\\)\\s*;.*")) {
+                    // Pattern: instanceName after class name
+                    System.out.println("[RebecaRename DEBUG] Detected as INSTANCE_NAME in main");
+                    return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
+                }
+                // Check if it's a parameter reference inside parentheses
+                else if (beforeWord.matches(".*\\(.*") && afterWord.matches(".*\\).*")) {
+                    System.out.println("[RebecaRename DEBUG] Detected as INSTANCE_NAME (parameter reference) in main");
                     return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
                 }
             }
