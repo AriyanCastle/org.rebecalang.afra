@@ -46,18 +46,27 @@ public class RebecaRenameAction extends AbstractHandler {
     
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
+        System.out.println("[RebecaRename DEBUG] Execute method called");
+        
         IEditorPart editor = HandlerUtil.getActiveEditor(event);
+        System.out.println("[RebecaRename DEBUG] Active editor: " + editor);
+        
         if (!(editor instanceof ITextEditor)) {
+            System.out.println("[RebecaRename DEBUG] Editor is not ITextEditor: " + (editor != null ? editor.getClass().getName() : "null"));
             return null;
         }
         
         currentEditor = (ITextEditor) editor;
         Shell shell = currentEditor.getSite().getShell();
+        System.out.println("[RebecaRename DEBUG] Got text editor and shell");
         
         try {
             // Get current selection/cursor position
             ISelection selection = currentEditor.getSelectionProvider().getSelection();
+            System.out.println("[RebecaRename DEBUG] Selection: " + selection);
+            
             if (!(selection instanceof ITextSelection)) {
+                System.out.println("[RebecaRename DEBUG] Selection is not ITextSelection");
                 showError(shell, "Please place cursor on a symbol to rename.");
                 return null;
             }
@@ -65,29 +74,40 @@ public class RebecaRenameAction extends AbstractHandler {
             ITextSelection textSelection = (ITextSelection) selection;
             currentDocument = currentEditor.getDocumentProvider().getDocument(currentEditor.getEditorInput());
             currentOffset = textSelection.getOffset();
+            System.out.println("[RebecaRename DEBUG] Current offset: " + currentOffset);
             
             // Get the file and project
             currentFile = (IFile) currentEditor.getEditorInput().getAdapter(IFile.class);
+            System.out.println("[RebecaRename DEBUG] Current file: " + currentFile);
             if (currentFile == null) {
+                System.out.println("[RebecaRename DEBUG] Could not determine current file");
                 showError(shell, "Could not determine current file.");
                 return null;
             }
             
             // Analyze symbol at cursor position
+            System.out.println("[RebecaRename DEBUG] Analyzing symbol at position");
             currentAnalysisResult = analyzeSymbolAtPosition(currentDocument, currentOffset);
+            System.out.println("[RebecaRename DEBUG] Analysis result: " + currentAnalysisResult);
+            
             if (currentAnalysisResult == null) {
+                System.out.println("[RebecaRename DEBUG] No renameable symbol found");
                 showError(shell, "No renameable symbol found at cursor position.");
                 return null;
             }
             
             originalSymbolName = currentAnalysisResult.symbolName;
+            System.out.println("[RebecaRename DEBUG] Original symbol name: " + originalSymbolName);
             
             // Show inline rename widget
+            System.out.println("[RebecaRename DEBUG] Calling showInlineRenameWidget");
             showInlineRenameWidget();
+            System.out.println("[RebecaRename DEBUG] showInlineRenameWidget completed");
             
         } catch (Exception e) {
-            showError(shell, "Rename operation failed: " + e.getMessage());
+            System.out.println("[RebecaRename DEBUG] Exception in execute: " + e.getMessage());
             e.printStackTrace();
+            showError(shell, "Rename operation failed: " + e.getMessage());
         }
         
         return null;
@@ -97,43 +117,62 @@ public class RebecaRenameAction extends AbstractHandler {
      * Show the inline rename widget near the cursor position
      */
     private void showInlineRenameWidget() {
+        System.out.println("[RebecaRename DEBUG] showInlineRenameWidget started");
         try {
             // Get the text viewer from the editor
+            System.out.println("[RebecaRename DEBUG] Getting source viewer from editor");
             ISourceViewer sourceViewer = (ISourceViewer) currentEditor.getAdapter(ISourceViewer.class);
+            System.out.println("[RebecaRename DEBUG] Source viewer: " + sourceViewer);
+            
             if (sourceViewer == null) {
+                System.out.println("[RebecaRename DEBUG] Source viewer is null, returning");
                 return;
             }
             
             // Get cursor position in screen coordinates
+            System.out.println("[RebecaRename DEBUG] Getting cursor screen location");
             Point cursorLocation = getCursorScreenLocation(sourceViewer);
+            System.out.println("[RebecaRename DEBUG] Cursor location: " + cursorLocation);
+            
             if (cursorLocation == null) {
+                System.out.println("[RebecaRename DEBUG] Cursor location is null, returning");
                 return;
             }
             
             // Create a small shell for the inline text
+            System.out.println("[RebecaRename DEBUG] Creating inline rename shell");
             inlineRenameShell = new Shell(currentEditor.getSite().getShell(), SWT.NO_TRIM | SWT.ON_TOP);
             inlineRenameShell.setLayout(new org.eclipse.swt.layout.FillLayout());
+            System.out.println("[RebecaRename DEBUG] Shell created: " + inlineRenameShell);
             
             // Create the text widget
+            System.out.println("[RebecaRename DEBUG] Creating text widget with symbol: " + originalSymbolName);
             inlineRenameText = new Text(inlineRenameShell, SWT.BORDER);
             inlineRenameText.setText(originalSymbolName);
             inlineRenameText.selectAll();
+            System.out.println("[RebecaRename DEBUG] Text widget created: " + inlineRenameText);
             
             // Calculate size and position
             Point textSize = inlineRenameText.computeSize(SWT.DEFAULT, SWT.DEFAULT);
             textSize.x = Math.max(textSize.x, originalSymbolName.length() * 8 + 20); // minimum width
+            System.out.println("[RebecaRename DEBUG] Text size: " + textSize);
             
             inlineRenameShell.setSize(textSize.x, textSize.y);
             inlineRenameShell.setLocation(cursorLocation.x, cursorLocation.y + 20); // slightly below cursor
+            System.out.println("[RebecaRename DEBUG] Shell positioned at: " + cursorLocation.x + ", " + (cursorLocation.y + 20));
             
             // Add event handlers
+            System.out.println("[RebecaRename DEBUG] Setting up event handlers");
             setupInlineRenameEventHandlers();
             
             // Show the shell and focus the text
+            System.out.println("[RebecaRename DEBUG] Opening shell and setting focus");
             inlineRenameShell.open();
             inlineRenameText.setFocus();
+            System.out.println("[RebecaRename DEBUG] Shell opened and focused");
             
         } catch (Exception e) {
+            System.out.println("[RebecaRename DEBUG] Exception in showInlineRenameWidget: " + e.getMessage());
             e.printStackTrace();
             hideInlineRenameWidget();
         }
@@ -143,23 +182,32 @@ public class RebecaRenameAction extends AbstractHandler {
      * Get the cursor location in screen coordinates
      */
     private Point getCursorScreenLocation(ISourceViewer sourceViewer) {
+        System.out.println("[RebecaRename DEBUG] getCursorScreenLocation started");
         try {
             // Get the text widget
             org.eclipse.swt.custom.StyledText textWidget = sourceViewer.getTextWidget();
+            System.out.println("[RebecaRename DEBUG] Text widget: " + textWidget);
             if (textWidget == null) {
+                System.out.println("[RebecaRename DEBUG] Text widget is null");
                 return null;
             }
             
             // Get current caret position in the text widget
             int caretOffset = textWidget.getCaretOffset();
+            System.out.println("[RebecaRename DEBUG] Caret offset: " + caretOffset);
             
             // Get the location of the caret in the text widget
             Point location = textWidget.getLocationAtOffset(caretOffset);
+            System.out.println("[RebecaRename DEBUG] Location in widget: " + location);
             
             // Convert to screen coordinates
-            return textWidget.toDisplay(location);
+            Point screenLocation = textWidget.toDisplay(location);
+            System.out.println("[RebecaRename DEBUG] Screen location: " + screenLocation);
+            return screenLocation;
             
         } catch (Exception e) {
+            System.out.println("[RebecaRename DEBUG] Exception in getCursorScreenLocation: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }
@@ -296,27 +344,43 @@ public class RebecaRenameAction extends AbstractHandler {
      * Analyze the symbol at the given position
      */
     private SymbolAnalysisResult analyzeSymbolAtPosition(IDocument document, int offset) {
+        System.out.println("[RebecaRename DEBUG] analyzeSymbolAtPosition started, offset: " + offset);
         try {
             // Get the word at the cursor position
             IRegion wordRegion = getWordRegion(document, offset);
+            System.out.println("[RebecaRename DEBUG] Word region: " + wordRegion);
             if (wordRegion == null) {
+                System.out.println("[RebecaRename DEBUG] Word region is null");
                 return null;
             }
             
             String word = document.get(wordRegion.getOffset(), wordRegion.getLength());
+            System.out.println("[RebecaRename DEBUG] Found word: '" + word + "'");
             if (word.trim().isEmpty()) {
+                System.out.println("[RebecaRename DEBUG] Word is empty");
                 return null;
             }
             
         // Determine symbol type based on context
+        System.out.println("[RebecaRename DEBUG] Determining symbol type");
         RebecaRefactoringParticipant.SymbolType symbolType = determineSymbolType(document, wordRegion.getOffset(), word);
+        System.out.println("[RebecaRename DEBUG] Symbol type: " + symbolType);
         if (symbolType == null) {
+            System.out.println("[RebecaRename DEBUG] Symbol type is null");
             return null;
         }
         
-        return new SymbolAnalysisResult(word, symbolType);
+        SymbolAnalysisResult result = new SymbolAnalysisResult(word, symbolType);
+        System.out.println("[RebecaRename DEBUG] Analysis result created: " + result.symbolName + " (" + result.symbolType + ")");
+        return result;
             
         } catch (BadLocationException e) {
+            System.out.println("[RebecaRename DEBUG] BadLocationException in analyzeSymbolAtPosition: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        } catch (Exception e) {
+            System.out.println("[RebecaRename DEBUG] Exception in analyzeSymbolAtPosition: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }
