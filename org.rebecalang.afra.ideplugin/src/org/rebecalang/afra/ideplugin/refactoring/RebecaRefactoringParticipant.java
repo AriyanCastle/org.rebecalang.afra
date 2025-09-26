@@ -77,17 +77,30 @@ public class RebecaRefactoringParticipant {
 		List<SymbolOccurrence> occurrences = new ArrayList<>();
 
 		try {
+			System.out.println("[DEBUG] *** RebecaRefactoringParticipant.findAllOccurrences ***");
+			System.out.println("[DEBUG] Symbol: '" + symbolName + "', Type: " + symbolType);
+			System.out.println("[DEBUG] Origin file: " + originFile.getName());
+			
 			// Get the current file and its corresponding paired file
 			List<IFile> pairedFiles = findPairedFiles(originFile);
+			System.out.println("[DEBUG] Found " + pairedFiles.size() + " paired files:");
+			for (IFile file : pairedFiles) {
+				System.out.println("[DEBUG]   - " + file.getName());
+			}
 
 			for (IFile file : pairedFiles) {
-				occurrences.addAll(findOccurrencesInFile(file, symbolName, symbolType, originFile, originOffset));
+				System.out.println("[DEBUG] Processing file: " + file.getName());
+				List<SymbolOccurrence> fileOccurrences = findOccurrencesInFile(file, symbolName, symbolType, originFile, originOffset);
+				System.out.println("[DEBUG] Found " + fileOccurrences.size() + " occurrences in " + file.getName());
+				occurrences.addAll(fileOccurrences);
 			}
 
 		} catch (Exception e) {
-			System.err.println("Error finding symbol occurrences: " + e.getMessage());
+			System.err.println("[DEBUG] Error finding symbol occurrences: " + e.getMessage());
+			e.printStackTrace();
 		}
 
+		System.out.println("[DEBUG] Total occurrences found: " + occurrences.size());
 		return occurrences;
 	}
 
@@ -142,6 +155,8 @@ public class RebecaRefactoringParticipant {
 		List<SymbolOccurrence> occurrences = new ArrayList<>();
 
 		try {
+			System.out.println("[DEBUG]   findOccurrencesInFile: " + file.getName() + " for '" + symbolName + "' (" + symbolType + ")");
+			
 			IDocumentProvider provider = new TextFileDocumentProvider();
 			provider.connect(file);
 			IDocument document = provider.getDocument(file);
@@ -149,18 +164,28 @@ public class RebecaRefactoringParticipant {
 			if (document != null) {
 				String content = document.get();
 				String extension = file.getFileExtension();
+				System.out.println("[DEBUG]   File extension: " + extension);
 
 				if ("rebeca".equals(extension)) {
-					occurrences.addAll(findOccurrencesInRebecaFile(file, content, symbolName, symbolType));
+					System.out.println("[DEBUG]   Searching in Rebeca file...");
+					List<SymbolOccurrence> rebecaOccurrences = findOccurrencesInRebecaFile(file, content, symbolName, symbolType);
+					System.out.println("[DEBUG]   Found " + rebecaOccurrences.size() + " occurrences in Rebeca file");
+					occurrences.addAll(rebecaOccurrences);
 				} else if ("property".equals(extension)) {
-					occurrences.addAll(findOccurrencesInPropertyFile(file, content, symbolName, symbolType));
+					System.out.println("[DEBUG]   Searching in Property file...");
+					List<SymbolOccurrence> propertyOccurrences = findOccurrencesInPropertyFile(file, content, symbolName, symbolType);
+					System.out.println("[DEBUG]   Found " + propertyOccurrences.size() + " occurrences in Property file");
+					occurrences.addAll(propertyOccurrences);
 				}
+			} else {
+				System.out.println("[DEBUG]   Document is null for file: " + file.getName());
 			}
 
 			provider.disconnect(file);
 
 		} catch (Exception e) {
-			System.err.println("Error analyzing file " + file.getName() + ": " + e.getMessage());
+			System.err.println("[DEBUG] Error analyzing file " + file.getName() + ": " + e.getMessage());
+			e.printStackTrace();
 		}
 
 		return occurrences;
@@ -173,22 +198,38 @@ public class RebecaRefactoringParticipant {
 			SymbolType symbolType) {
 		List<SymbolOccurrence> occurrences = new ArrayList<>();
 
+		System.out.println("[DEBUG]     findOccurrencesInRebecaFile: " + symbolName + " (" + symbolType + ")");
+		
 		switch (symbolType) {
 		case CLASS_NAME:
-			occurrences.addAll(findClassNameOccurrences(file, content, symbolName));
+			System.out.println("[DEBUG]     Searching for CLASS_NAME: " + symbolName);
+			List<SymbolOccurrence> classOccurrences = findClassNameOccurrences(file, content, symbolName);
+			System.out.println("[DEBUG]     Found " + classOccurrences.size() + " class occurrences");
+			occurrences.addAll(classOccurrences);
 			break;
 		case METHOD_NAME:
-			occurrences.addAll(findMethodNameOccurrences(file, content, symbolName));
+			System.out.println("[DEBUG]     Searching for METHOD_NAME: " + symbolName);
+			List<SymbolOccurrence> methodOccurrences = findMethodNameOccurrences(file, content, symbolName);
+			System.out.println("[DEBUG]     Found " + methodOccurrences.size() + " method occurrences");
+			occurrences.addAll(methodOccurrences);
 			break;
 		case VARIABLE_NAME:
-			occurrences.addAll(findVariableNameOccurrences(file, content, symbolName));
+			System.out.println("[DEBUG]     Searching for VARIABLE_NAME: " + symbolName);
+			List<SymbolOccurrence> variableOccurrences = findVariableNameOccurrences(file, content, symbolName);
+			System.out.println("[DEBUG]     Found " + variableOccurrences.size() + " variable occurrences");
+			occurrences.addAll(variableOccurrences);
 			break;
 		case INSTANCE_NAME:
-			occurrences.addAll(findInstanceNameOccurrences(file, content, symbolName));
+			System.out.println("[DEBUG]     Searching for INSTANCE_NAME: " + symbolName);
+			List<SymbolOccurrence> instanceOccurrences = findInstanceNameOccurrences(file, content, symbolName);
+			System.out.println("[DEBUG]     Found " + instanceOccurrences.size() + " instance occurrences");
+			occurrences.addAll(instanceOccurrences);
 			break;
 		case PROPERTY_NAME:
-			// Property names don't typically appear in rebeca files, but search for any references
-			occurrences.addAll(findPropertyReferencesInRebeca(file, content, symbolName));
+			System.out.println("[DEBUG]     Searching for PROPERTY_NAME: " + symbolName);
+			List<SymbolOccurrence> propertyOccurrences = findPropertyReferencesInRebeca(file, content, symbolName);
+			System.out.println("[DEBUG]     Found " + propertyOccurrences.size() + " property occurrences");
+			occurrences.addAll(propertyOccurrences);
 			break;
 		}
 
@@ -395,23 +436,38 @@ public class RebecaRefactoringParticipant {
 			SymbolType symbolType) {
 		List<SymbolOccurrence> occurrences = new ArrayList<>();
 
+		System.out.println("[DEBUG]     findOccurrencesInPropertyFile: " + symbolName + " (" + symbolType + ")");
+		
 		switch (symbolType) {
 		case PROPERTY_NAME:
-			occurrences.addAll(findPropertyNameOccurrences(file, content, symbolName));
+			System.out.println("[DEBUG]     Searching for PROPERTY_NAME in property file: " + symbolName);
+			List<SymbolOccurrence> propertyOccurrences = findPropertyNameOccurrences(file, content, symbolName);
+			System.out.println("[DEBUG]     Found " + propertyOccurrences.size() + " property occurrences");
+			occurrences.addAll(propertyOccurrences);
 			break;
 		case INSTANCE_NAME:
-			occurrences.addAll(findInstanceReferencesInProperty(file, content, symbolName));
+			System.out.println("[DEBUG]     Searching for INSTANCE_NAME in property file: " + symbolName);
+			List<SymbolOccurrence> instanceOccurrences = findInstanceReferencesInProperty(file, content, symbolName);
+			System.out.println("[DEBUG]     Found " + instanceOccurrences.size() + " instance occurrences");
+			occurrences.addAll(instanceOccurrences);
 			break;
 		case VARIABLE_NAME:
-			occurrences.addAll(findVariableReferencesInProperty(file, content, symbolName));
+			System.out.println("[DEBUG]     Searching for VARIABLE_NAME in property file: " + symbolName);
+			List<SymbolOccurrence> variableOccurrences = findVariableReferencesInProperty(file, content, symbolName);
+			System.out.println("[DEBUG]     Found " + variableOccurrences.size() + " variable occurrences");
+			occurrences.addAll(variableOccurrences);
 			break;
 		case CLASS_NAME:
-			// Class names don't typically appear in property files, but search for any references
-			occurrences.addAll(findClassReferencesInProperty(file, content, symbolName));
+			System.out.println("[DEBUG]     Searching for CLASS_NAME in property file: " + symbolName);
+			List<SymbolOccurrence> classOccurrences = findClassReferencesInProperty(file, content, symbolName);
+			System.out.println("[DEBUG]     Found " + classOccurrences.size() + " class occurrences");
+			occurrences.addAll(classOccurrences);
 			break;
 		case METHOD_NAME:
-			// Method names don't typically appear in property files, but search for any references  
-			occurrences.addAll(findMethodReferencesInProperty(file, content, symbolName));
+			System.out.println("[DEBUG]     Searching for METHOD_NAME in property file: " + symbolName);
+			List<SymbolOccurrence> methodOccurrences = findMethodReferencesInProperty(file, content, symbolName);
+			System.out.println("[DEBUG]     Found " + methodOccurrences.size() + " method occurrences");
+			occurrences.addAll(methodOccurrences);
 			break;
 		}
 

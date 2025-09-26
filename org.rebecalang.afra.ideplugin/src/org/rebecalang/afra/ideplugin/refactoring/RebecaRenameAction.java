@@ -427,12 +427,25 @@ public class RebecaRenameAction extends AbstractHandler {
             // Find all occurrences and perform rename
             IProject project = currentFile.getProject();
             RebecaRefactoringParticipant refactoring = new RebecaRefactoringParticipant(project);
+            
+            System.out.println("[RebecaRename DEBUG] *** Starting findAllOccurrences ***");
+            System.out.println("[RebecaRename DEBUG] Symbol: '" + currentAnalysisResult.symbolName + "'");
+            System.out.println("[RebecaRename DEBUG] Type: " + currentAnalysisResult.symbolType);
+            System.out.println("[RebecaRename DEBUG] File: " + currentFile.getName());
+            System.out.println("[RebecaRename DEBUG] Offset: " + currentOffset);
+            
             List<RebecaRefactoringParticipant.SymbolOccurrence> occurrences = refactoring.findAllOccurrences(
                 currentAnalysisResult.symbolName, 
                 currentAnalysisResult.symbolType, 
                 currentFile, 
                 currentOffset
             );
+            
+            System.out.println("[RebecaRename DEBUG] *** findAllOccurrences completed ***");
+            System.out.println("[RebecaRename DEBUG] Found " + occurrences.size() + " occurrences:");
+            for (RebecaRefactoringParticipant.SymbolOccurrence occ : occurrences) {
+                System.out.println("[RebecaRename DEBUG]   - " + occ.file.getName() + " at offset " + occ.offset + " ('" + occ.originalName + "')");
+            }
             
             if (occurrences.isEmpty()) {
                 showError(currentEditor.getSite().getShell(), "No occurrences found for symbol '" + originalSymbolName + "'.");
