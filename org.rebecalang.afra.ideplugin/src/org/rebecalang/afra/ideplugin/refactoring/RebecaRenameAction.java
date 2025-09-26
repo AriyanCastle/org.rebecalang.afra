@@ -291,10 +291,21 @@ public class RebecaRenameAction extends AbstractHandler {
     private void createInlineRenameWidget(org.eclipse.swt.graphics.Point location) {
         System.out.println("[RebecaRename DEBUG] createInlineRenameWidget at: " + location);
         try {
-            // Create a small shell for the inline text
+            // Create a shell for the inline rename widget
             inlineRenameShell = new Shell(currentEditor.getSite().getShell(), SWT.NO_TRIM | SWT.ON_TOP);
-            inlineRenameShell.setLayout(new org.eclipse.swt.layout.FillLayout());
+            inlineRenameShell.setLayout(new org.eclipse.swt.layout.GridLayout(1, false));
+            inlineRenameShell.setBackground(inlineRenameShell.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
             System.out.println("[RebecaRename DEBUG] Shell created");
+            
+            // Create the label
+            org.eclipse.swt.widgets.Label instructionLabel = new org.eclipse.swt.widgets.Label(inlineRenameShell, SWT.NONE);
+            instructionLabel.setText("Enter new name, press Enter to rename:");
+            instructionLabel.setBackground(inlineRenameShell.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+            instructionLabel.setForeground(inlineRenameShell.getDisplay().getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+            org.eclipse.swt.layout.GridData labelData = new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.CENTER, true, false);
+            labelData.horizontalIndent = 4;
+            labelData.verticalIndent = 2;
+            instructionLabel.setLayoutData(labelData);
             
             // Create the text widget
             inlineRenameText = new Text(inlineRenameShell, SWT.BORDER);
@@ -302,13 +313,19 @@ public class RebecaRenameAction extends AbstractHandler {
             inlineRenameText.selectAll();
             System.out.println("[RebecaRename DEBUG] Text widget created with: " + originalSymbolName);
             
-            // Calculate size and position
-            Point textSize = inlineRenameText.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-            textSize.x = Math.max(textSize.x, originalSymbolName.length() * 8 + 20); // minimum width
+            // Make the text field larger
+            org.eclipse.swt.layout.GridData textData = new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.CENTER, true, false);
+            textData.horizontalIndent = 4;
+            textData.verticalIndent = 2;
+            textData.minimumWidth = Math.max(200, originalSymbolName.length() * 12 + 40); // larger minimum width
+            textData.widthHint = textData.minimumWidth;
+            inlineRenameText.setLayoutData(textData);
             
-            inlineRenameShell.setSize(textSize.x, textSize.y);
+            // Calculate shell size
+            Point shellSize = inlineRenameShell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+            inlineRenameShell.setSize(shellSize.x + 8, shellSize.y + 4); // add padding
             inlineRenameShell.setLocation(location.x, location.y);
-            System.out.println("[RebecaRename DEBUG] Widget size: " + textSize);
+            System.out.println("[RebecaRename DEBUG] Widget size: " + shellSize);
             
             // Add event handlers
             setupInlineRenameEventHandlers();
@@ -605,12 +622,30 @@ public class RebecaRenameAction extends AbstractHandler {
             
             // Check if it's in knownrebecs section
             if (isInSection(content, offset, "knownrebecs")) {
-                // If it's at the beginning of line and followed by variable names, it's a class name
+                System.out.println("[RebecaRename DEBUG] In knownrebecs section, word: '" + word + "'");
+                System.out.println("[RebecaRename DEBUG] beforeWord: '" + beforeWord + "'");
+                System.out.println("[RebecaRename DEBUG] afterWord: '" + afterWord + "'");
+                
+                // Check if this is a class name by looking at the pattern: ClassName varName1, varName2, ...;
+                // beforeWord should only contain whitespace (indentation), and afterWord should have variables
                 if (beforeWord.trim().isEmpty() && afterWord.matches("\\s+[\\w\\s,]+;.*")) {
                     // Pattern: ClassName varName1, varName2, ...;
+                    System.out.println("[RebecaRename DEBUG] Detected as CLASS_NAME");
                     return RebecaRefactoringParticipant.SymbolType.CLASS_NAME;
+                } 
+                // Check if it's before a comma or semicolon (variable/instance name)
+                else if (afterWord.matches("\\s*[,;].*") || afterWord.matches("\\s+\\w+.*[,;].*")) {
+                    // Pattern: varName1, varName2, ... or varName;
+                    System.out.println("[RebecaRename DEBUG] Detected as INSTANCE_NAME");
+                    return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
+                }
+                // If preceding by a class name, it's an instance name
+                else if (beforeWord.matches(".*\\w\\s*$")) {
+                    System.out.println("[RebecaRename DEBUG] Detected as INSTANCE_NAME (after class)");
+                    return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
                 } else {
-                    // Otherwise it's an instance name
+                    // Default to instance name in knownrebecs
+                    System.out.println("[RebecaRename DEBUG] Defaulting to INSTANCE_NAME");
                     return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
                 }
             }

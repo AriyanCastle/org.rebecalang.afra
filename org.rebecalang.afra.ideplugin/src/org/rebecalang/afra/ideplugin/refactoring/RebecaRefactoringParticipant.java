@@ -186,6 +186,10 @@ public class RebecaRefactoringParticipant {
 		case INSTANCE_NAME:
 			occurrences.addAll(findInstanceNameOccurrences(file, content, symbolName));
 			break;
+		case PROPERTY_NAME:
+			// Property names don't typically appear in rebeca files, but search for any references
+			occurrences.addAll(findPropertyReferencesInRebeca(file, content, symbolName));
+			break;
 		}
 
 		return occurrences;
@@ -222,15 +226,25 @@ public class RebecaRefactoringParticipant {
 		String knownrebecsBody = getKnownrebecssection(content);
 		if (!knownrebecsBody.isEmpty()) {
 			int knownrebecsBodyOffset = findKnownrebecsOffset(content);
-			Pattern knownrebecsClassPattern = Pattern.compile("(^|\\b)(" + Pattern.quote(className) + ")\\s+[^;\r\n]+;",
-					Pattern.MULTILINE);
+			
+			// Debug: Print knownrebecs content and pattern
+			System.out.println("[DEBUG] Knownrebecs body: '" + knownrebecsBody + "'");
+			System.out.println("[DEBUG] Looking for class: '" + className + "'");
+			System.out.println("[DEBUG] Knownrebecs offset: " + knownrebecsBodyOffset);
+			
+			// More flexible pattern for knownrebecs - handle whitespace and newlines better
+			Pattern knownrebecsClassPattern = Pattern.compile("(?:^|\\s|\\n|\\r)(" + Pattern.quote(className) + ")\\s+[^;\\}]+;",
+					Pattern.MULTILINE | Pattern.DOTALL);
 			Matcher knownrebecsMatcher = knownrebecsClassPattern.matcher(knownrebecsBody);
 			while (knownrebecsMatcher.find()) {
-				int relativeOffset = knownrebecsMatcher.start(2);
+				int relativeOffset = knownrebecsMatcher.start(1);
 				int absoluteOffset = knownrebecsBodyOffset + relativeOffset;
+				System.out.println("[DEBUG] Found class '" + className + "' in knownrebecs at relative offset: " + relativeOffset + ", absolute: " + absoluteOffset);
 				occurrences.add(new SymbolOccurrence(file, absoluteOffset, className.length(), className,
 						SymbolType.CLASS_NAME, new SymbolContext(null, null, false)));
 			}
+		} else {
+			System.out.println("[DEBUG] Knownrebecs body is empty for class: " + className);
 		}
 
 		return occurrences;
@@ -357,6 +371,14 @@ public class RebecaRefactoringParticipant {
 		case VARIABLE_NAME:
 			occurrences.addAll(findVariableReferencesInProperty(file, content, symbolName));
 			break;
+		case CLASS_NAME:
+			// Class names don't typically appear in property files, but search for any references
+			occurrences.addAll(findClassReferencesInProperty(file, content, symbolName));
+			break;
+		case METHOD_NAME:
+			// Method names don't typically appear in property files, but search for any references  
+			occurrences.addAll(findMethodReferencesInProperty(file, content, symbolName));
+			break;
 		}
 
 		return occurrences;
@@ -424,6 +446,60 @@ public class RebecaRefactoringParticipant {
 					SymbolType.VARIABLE_NAME, new SymbolContext(null, null, false)));
 		}
 
+		return occurrences;
+	}
+
+	/**
+	 * Find property references in rebeca files (typically none, but included for completeness)
+	 */
+	private List<SymbolOccurrence> findPropertyReferencesInRebeca(IFile file, String content, String propertyName) {
+		List<SymbolOccurrence> occurrences = new ArrayList<>();
+		
+		// Property names typically don't appear in rebeca files, but search for any potential references
+		Pattern propertyRefPattern = Pattern.compile("\\b(" + Pattern.quote(propertyName) + ")\\b");
+		Matcher matcher = propertyRefPattern.matcher(content);
+		while (matcher.find()) {
+			int offset = matcher.start(1);
+			occurrences.add(new SymbolOccurrence(file, offset, propertyName.length(), propertyName,
+					SymbolType.PROPERTY_NAME, new SymbolContext(null, null, false)));
+		}
+		
+		return occurrences;
+	}
+
+	/**
+	 * Find class references in property files (typically none, but included for completeness)
+	 */
+	private List<SymbolOccurrence> findClassReferencesInProperty(IFile file, String content, String className) {
+		List<SymbolOccurrence> occurrences = new ArrayList<>();
+		
+		// Class names typically don't appear in property files, but search for any potential references
+		Pattern classRefPattern = Pattern.compile("\\b(" + Pattern.quote(className) + ")\\b");
+		Matcher matcher = classRefPattern.matcher(content);
+		while (matcher.find()) {
+			int offset = matcher.start(1);
+			occurrences.add(new SymbolOccurrence(file, offset, className.length(), className,
+					SymbolType.CLASS_NAME, new SymbolContext(null, null, false)));
+		}
+		
+		return occurrences;
+	}
+
+	/**
+	 * Find method references in property files (typically none, but included for completeness)
+	 */
+	private List<SymbolOccurrence> findMethodReferencesInProperty(IFile file, String content, String methodName) {
+		List<SymbolOccurrence> occurrences = new ArrayList<>();
+		
+		// Method names typically don't appear in property files, but search for any potential references
+		Pattern methodRefPattern = Pattern.compile("\\b(" + Pattern.quote(methodName) + ")\\b");
+		Matcher matcher = methodRefPattern.matcher(content);
+		while (matcher.find()) {
+			int offset = matcher.start(1);
+			occurrences.add(new SymbolOccurrence(file, offset, methodName.length(), methodName,
+					SymbolType.METHOD_NAME, new SymbolContext(null, null, false)));
+		}
+		
 		return occurrences;
 	}
 
