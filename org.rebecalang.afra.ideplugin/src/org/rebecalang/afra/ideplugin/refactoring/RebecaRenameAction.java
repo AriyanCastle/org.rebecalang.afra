@@ -119,13 +119,14 @@ public class RebecaRenameAction extends AbstractHandler {
     private void showInlineRenameWidget() {
         System.out.println("[RebecaRename DEBUG] showInlineRenameWidget started");
         try {
-            // Get the text viewer from the editor
+            // Get the source viewer from the editor using reflection or alternative methods
             System.out.println("[RebecaRename DEBUG] Getting source viewer from editor");
-            ISourceViewer sourceViewer = (ISourceViewer) currentEditor.getAdapter(ISourceViewer.class);
+            ISourceViewer sourceViewer = getSourceViewerFromEditor(currentEditor);
             System.out.println("[RebecaRename DEBUG] Source viewer: " + sourceViewer);
             
             if (sourceViewer == null) {
-                System.out.println("[RebecaRename DEBUG] Source viewer is null, returning");
+                System.out.println("[RebecaRename DEBUG] Source viewer is null, trying alternative approach");
+                showInlineRenameWidgetAlternative();
                 return;
             }
             
@@ -173,6 +174,152 @@ public class RebecaRenameAction extends AbstractHandler {
             
         } catch (Exception e) {
             System.out.println("[RebecaRename DEBUG] Exception in showInlineRenameWidget: " + e.getMessage());
+            e.printStackTrace();
+            hideInlineRenameWidget();
+        }
+    }
+    
+    /**
+     * Get the source viewer from the editor using multiple approaches
+     */
+    private ISourceViewer getSourceViewerFromEditor(ITextEditor editor) {
+        System.out.println("[RebecaRename DEBUG] getSourceViewerFromEditor started");
+        
+        // Try 1: Standard adapter approach
+        ISourceViewer sourceViewer = (ISourceViewer) editor.getAdapter(ISourceViewer.class);
+        if (sourceViewer != null) {
+            System.out.println("[RebecaRename DEBUG] Got source viewer via adapter");
+            return sourceViewer;
+        }
+        
+        // Try 2: If editor extends AbstractTextEditor, use reflection to get the source viewer
+        try {
+            if (editor instanceof org.eclipse.ui.texteditor.AbstractTextEditor) {
+                System.out.println("[RebecaRename DEBUG] Editor is AbstractTextEditor, trying reflection");
+                
+                // Use reflection to access the protected getSourceViewer method
+                java.lang.reflect.Method method = org.eclipse.ui.texteditor.AbstractTextEditor.class.getDeclaredMethod("getSourceViewer");
+                method.setAccessible(true);
+                Object result = method.invoke(editor);
+                
+                if (result instanceof ISourceViewer) {
+                    System.out.println("[RebecaRename DEBUG] Got source viewer via reflection");
+                    return (ISourceViewer) result;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("[RebecaRename DEBUG] Reflection approach failed: " + e.getMessage());
+        }
+        
+        // Try 3: Check if it's a specific Rebeca editor with known methods
+        try {
+            // Try to call getSourceViewer() method if it exists on the editor
+            java.lang.reflect.Method method = editor.getClass().getMethod("getSourceViewer");
+            Object result = method.invoke(editor);
+            if (result instanceof ISourceViewer) {
+                System.out.println("[RebecaRename DEBUG] Got source viewer via editor method");
+                return (ISourceViewer) result;
+            }
+        } catch (Exception e) {
+            System.out.println("[RebecaRename DEBUG] Editor method approach failed: " + e.getMessage());
+        }
+        
+        System.out.println("[RebecaRename DEBUG] All source viewer approaches failed");
+        return null;
+    }
+    
+    /**
+     * Alternative approach when source viewer is not available
+     */
+    private void showInlineRenameWidgetAlternative() {
+        System.out.println("[RebecaRename DEBUG] showInlineRenameWidgetAlternative started");
+        try {
+            // Get the editor's control to position the widget
+            org.eclipse.swt.widgets.Control editorControl = (org.eclipse.swt.widgets.Control) currentEditor.getAdapter(org.eclipse.swt.widgets.Control.class);
+            if (editorControl == null) {
+                System.out.println("[RebecaRename DEBUG] Could not get editor control, using shell positioning");
+                showInlineRenameWidgetAtCenter();
+                return;
+            }
+            
+            System.out.println("[RebecaRename DEBUG] Got editor control: " + editorControl);
+            
+            // Get the bounds of the editor control
+            org.eclipse.swt.graphics.Rectangle bounds = editorControl.getBounds();
+            org.eclipse.swt.graphics.Point location = editorControl.toDisplay(bounds.x + 100, bounds.y + 100);
+            
+            System.out.println("[RebecaRename DEBUG] Editor control bounds: " + bounds);
+            System.out.println("[RebecaRename DEBUG] Calculated location: " + location);
+            
+            // Create the inline rename widget at calculated position
+            createInlineRenameWidget(location);
+            
+        } catch (Exception e) {
+            System.out.println("[RebecaRename DEBUG] Alternative approach failed: " + e.getMessage());
+            e.printStackTrace();
+            showInlineRenameWidgetAtCenter();
+        }
+    }
+    
+    /**
+     * Show the widget at the center of the editor as fallback
+     */
+    private void showInlineRenameWidgetAtCenter() {
+        System.out.println("[RebecaRename DEBUG] showInlineRenameWidgetAtCenter started");
+        try {
+            Shell parentShell = currentEditor.getSite().getShell();
+            org.eclipse.swt.graphics.Rectangle bounds = parentShell.getBounds();
+            
+            // Position at center of the parent shell
+            org.eclipse.swt.graphics.Point location = new org.eclipse.swt.graphics.Point(
+                bounds.x + bounds.width / 2, 
+                bounds.y + bounds.height / 2
+            );
+            
+            System.out.println("[RebecaRename DEBUG] Center location: " + location);
+            createInlineRenameWidget(location);
+            
+        } catch (Exception e) {
+            System.out.println("[RebecaRename DEBUG] Center positioning failed: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Create the inline rename widget at the specified location
+     */
+    private void createInlineRenameWidget(org.eclipse.swt.graphics.Point location) {
+        System.out.println("[RebecaRename DEBUG] createInlineRenameWidget at: " + location);
+        try {
+            // Create a small shell for the inline text
+            inlineRenameShell = new Shell(currentEditor.getSite().getShell(), SWT.NO_TRIM | SWT.ON_TOP);
+            inlineRenameShell.setLayout(new org.eclipse.swt.layout.FillLayout());
+            System.out.println("[RebecaRename DEBUG] Shell created");
+            
+            // Create the text widget
+            inlineRenameText = new Text(inlineRenameShell, SWT.BORDER);
+            inlineRenameText.setText(originalSymbolName);
+            inlineRenameText.selectAll();
+            System.out.println("[RebecaRename DEBUG] Text widget created with: " + originalSymbolName);
+            
+            // Calculate size and position
+            Point textSize = inlineRenameText.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+            textSize.x = Math.max(textSize.x, originalSymbolName.length() * 8 + 20); // minimum width
+            
+            inlineRenameShell.setSize(textSize.x, textSize.y);
+            inlineRenameShell.setLocation(location.x, location.y);
+            System.out.println("[RebecaRename DEBUG] Widget size: " + textSize);
+            
+            // Add event handlers
+            setupInlineRenameEventHandlers();
+            
+            // Show the shell and focus the text
+            inlineRenameShell.open();
+            inlineRenameText.setFocus();
+            System.out.println("[RebecaRename DEBUG] Widget opened and focused");
+            
+        } catch (Exception e) {
+            System.out.println("[RebecaRename DEBUG] createInlineRenameWidget failed: " + e.getMessage());
             e.printStackTrace();
             hideInlineRenameWidget();
         }
