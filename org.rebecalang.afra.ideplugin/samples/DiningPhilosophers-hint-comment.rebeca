@@ -5,7 +5,7 @@ reactiveclass Philosopher(3) {
 	More details in a new line
 
 	@something_bold
-	**/
+	*/
 	knownrebecs {
 		Chopstick chpL, chpR;
 	}
@@ -23,7 +23,7 @@ reactiveclass Philosopher(3) {
 	msgsrv arrive(int x, boolean y) {
 		/** here is a method documentation 
 		THIS WON'N compile because of signiture change to show Javadoc 
-		**/
+		*/
 		chpL.request();
 	}
 	msgsrv permit() {

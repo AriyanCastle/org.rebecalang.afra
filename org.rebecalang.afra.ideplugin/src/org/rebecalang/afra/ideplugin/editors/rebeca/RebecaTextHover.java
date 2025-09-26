@@ -172,7 +172,7 @@ public class RebecaTextHover implements ITextHover, ITextHoverExtension {
                     String methodBody = documentText.substring(braceStart + 1, braceEnd);
                     
                     // Look for /** */ documentation at the beginning of the method body
-                    Pattern docPattern = Pattern.compile("^\\s*/\\*\\*\\s*(.*?)\\s*\\*\\*/", Pattern.DOTALL);
+                    Pattern docPattern = Pattern.compile("^\\s*/\\*\\*\\s*(.*?)\\s*\\*/", Pattern.DOTALL);
                     Matcher docMatcher = docPattern.matcher(methodBody);
                     
                     StringBuilder hoverInfo = new StringBuilder();
@@ -222,7 +222,7 @@ public class RebecaTextHover implements ITextHover, ITextHoverExtension {
                     String classBody = documentText.substring(braceStart + 1, braceEnd);
                     
                     // Look for /** */ documentation at the beginning of the class body
-                    Pattern docPattern = Pattern.compile("^\\s*/\\*\\*\\s*(.*?)\\s*\\*\\*/", Pattern.DOTALL);
+                    Pattern docPattern = Pattern.compile("^\\s*/\\*\\*\\s*(.*?)\\s*\\*/", Pattern.DOTALL);
                     Matcher docMatcher = docPattern.matcher(classBody);
                     
                     StringBuilder hoverInfo = new StringBuilder();
