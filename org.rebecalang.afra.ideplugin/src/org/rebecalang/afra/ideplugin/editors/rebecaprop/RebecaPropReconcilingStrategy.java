@@ -65,21 +65,46 @@ public class RebecaPropReconcilingStrategy implements IReconcilingStrategy, IRec
     }
 
     protected void getTokens() throws BadLocationException {
-        ArrayList<Integer> openPositions = new ArrayList<Integer> ();
+        ArrayList<Integer> openPositions = new ArrayList<Integer>();
+        boolean inString = false;
+        boolean inSingleLineComment = false;
+        boolean inMultiLineComment = false;
+        
         for(int pos = 0; pos < fRangeEnd; pos += 1) {
             char ch = fDocument.getChar(pos);
-            if(ch == '{') {
-                openPositions.add(pos);
-            }
-            else if(ch == '}') {
-                if(openPositions.size() > 0) {
-                    int lastIndex = openPositions.size() - 1;
-                    int lastOpen = (int) openPositions.get(lastIndex);
-                    openPositions.remove(lastIndex);
-                    emitPosition(lastOpen, pos - lastOpen);
+            char nextCh = (pos + 1 < fRangeEnd) ? fDocument.getChar(pos + 1) : '\0';
+            
+            if (!inString && !inSingleLineComment && !inMultiLineComment) {
+                if (ch == '"') {
+                    inString = true;
+                } else if (ch == '/' && nextCh == '/') {
+                    inSingleLineComment = true;
+                } else if (ch == '/' && nextCh == '*') {
+                    inMultiLineComment = true;
+                } else if (ch == '{') {
+                    openPositions.add(pos);
+                } else if (ch == '}') {
+                    if (openPositions.size() > 0) {
+                        int lastIndex = openPositions.size() - 1;
+                        int lastOpen = openPositions.get(lastIndex);
+                        openPositions.remove(lastIndex);
+                        emitPosition(lastOpen, pos - lastOpen + 1);
+                    }
+                }
+            } else if (inString) {
+                if (ch == '"' && (pos == 0 || fDocument.getChar(pos - 1) != '\\')) {
+                    inString = false;
+                }
+            } else if (inSingleLineComment) {
+                if (ch == '\n' || ch == '\r') {
+                    inSingleLineComment = false;
+                }
+            } else if (inMultiLineComment) {
+                if (ch == '*' && nextCh == '/') {
+                    inMultiLineComment = false;
+                    pos++;
                 }
             }
-
         }
     }
 }
