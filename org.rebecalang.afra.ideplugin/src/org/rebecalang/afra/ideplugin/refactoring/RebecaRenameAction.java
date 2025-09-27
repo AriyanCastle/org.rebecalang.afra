@@ -613,6 +613,14 @@ public class RebecaRenameAction extends AbstractHandler {
                 return RebecaRefactoringParticipant.SymbolType.CLASS_NAME;
             }
             
+			// Check for constructor declaration: ClassName()
+			if (line.matches("\\s*" + java.util.regex.Pattern.quote(word) + "\\s*\\(.*")) {
+				// To be sure, check if there is a reactiveclass declaration for this word in the file
+				if (content.matches("(?s).*\\breactiveclass\\s+" + java.util.regex.Pattern.quote(word) + "\\b.*")) {
+					return RebecaRefactoringParticipant.SymbolType.CLASS_NAME;
+				}
+			}
+
             // Check for method declaration: msgsrv methodName
             if (line.matches(".*\\bmsgsrv\\s+" + java.util.regex.Pattern.quote(word) + "\\s*\\(.*")) {
                 return RebecaRefactoringParticipant.SymbolType.METHOD_NAME;
