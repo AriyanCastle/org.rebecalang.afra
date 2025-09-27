@@ -147,24 +147,7 @@ public class RebecaPropEditor extends TextEditor {
         }
     }
     
-    @Override
-    public void dispose() {
-        if (syntaxChecker != null) {
-            try {
-                syntaxChecker.stopChecking(getDocument());
-                syntaxChecker.dispose();
-                syntaxChecker = null;
-            } catch (Exception e) {
-                System.err.println("Error disposing syntax checker: " + e.getMessage());
-            }
-        }
-        
-        if (colorManager != null) {
-            colorManager.dispose();
-        }
-        
-        super.dispose();
-    }
+
     
     /**
      * Sets up word highlighting functionality by adding mouse listeners to the text widget.
@@ -230,6 +213,20 @@ public class RebecaPropEditor extends TextEditor {
     		wordHighlightManager.dispose();
     		wordHighlightManager = null;
     	}
+		 if (syntaxChecker != null) {
+            try {
+                syntaxChecker.stopChecking(getDocument());
+                syntaxChecker.dispose();
+                syntaxChecker = null;
+            } catch (Exception e) {
+                System.err.println("Error disposing syntax checker: " + e.getMessage());
+            }
+        }
+        
+        if (colorManager != null) {
+            colorManager.dispose();
+        }
     	super.dispose();
     }
 }
+
