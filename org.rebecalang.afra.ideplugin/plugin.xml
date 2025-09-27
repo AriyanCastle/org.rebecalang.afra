@@ -129,6 +129,40 @@
 	   </initializer>
 	</extension>
 
+	<!-- Word highlighting annotation types -->
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+	   <type
+	         name="org.rebecalang.afra.wordHighlight"
+	         super="org.eclipse.ui.workbench.texteditor.info">
+	   </type>
+	</extension>
+
+	<!-- Word highlighting annotation presentation -->
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+	   <specification
+	         annotationType="org.rebecalang.afra.wordHighlight"
+	         colorPreferenceKey="wordHighlightColor"
+	         colorPreferenceValue="220,220,220"
+	         contributesToHeader="false"
+	         highlightPreferenceKey="wordHighlightHighlight"
+	         highlightPreferenceValue="true"
+	         includeOnPreferencePage="true"
+	         isGoToNextNavigationTarget="false"
+	         isGoToPreviousNavigationTarget="false"
+	         label="Word Highlight"
+	         overviewRulerPreferenceKey="wordHighlightOverviewRuler"
+	         overviewRulerPreferenceValue="false"
+	         presentationLayer="0"
+	         showInNextPrevDropDownToolbarAction="false"
+	         textPreferenceKey="wordHighlightText"
+	         textPreferenceValue="false"
+	         textStylePreferenceKey="wordHighlightTextStyle"
+	         textStylePreferenceValue="NONE"
+	         verticalRulerPreferenceKey="wordHighlightVerticalRuler"
+	         verticalRulerPreferenceValue="false">
+	   </specification>
+	</extension>
+
 	<extension
 	      point="org.eclipse.ui.propertyPages">
 	   <page
