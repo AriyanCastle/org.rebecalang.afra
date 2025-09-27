@@ -273,38 +273,29 @@ public class RebecaRefactoringParticipant {
 			System.out.println("[DEBUG] Looking for class: '" + className + "'");
 			System.out.println("[DEBUG] Knownrebecs offset: " + knownrebecsBodyOffset);
 			
-			// Pattern for class names in knownrebecs: should match ClassName at the beginning of a line or after whitespace
-			// Pattern: (start_of_line or whitespace)(ClassName)(whitespace)(instance_names);
-			Pattern knownrebecsClassPattern = Pattern.compile("(^|\\s+)(" + Pattern.quote(className) + ")\\s+[\\w\\s,]+;",
-					Pattern.MULTILINE);
-			Matcher knownrebecsMatcher = knownrebecsClassPattern.matcher(knownrebecsBody);
-			while (knownrebecsMatcher.find()) {
-				int relativeOffset = knownrebecsMatcher.start(2);
+			// Use a simpler approach: find all instances of the class name as word boundaries
+			// then check the context to see if it's used as a class name
+			Pattern simplePattern = Pattern.compile("\\b(" + Pattern.quote(className) + ")\\b");
+			Matcher simpleMatcher = simplePattern.matcher(knownrebecsBody);
+			while (simpleMatcher.find()) {
+				int relativeOffset = simpleMatcher.start(1);
 				int absoluteOffset = knownrebecsBodyOffset + relativeOffset;
-				System.out.println("[DEBUG] Found class '" + className + "' in knownrebecs at relative offset: " + relativeOffset + ", absolute: " + absoluteOffset);
-				occurrences.add(new SymbolOccurrence(file, absoluteOffset, className.length(), className,
-						SymbolType.CLASS_NAME, new SymbolContext(null, null, false)));
-			}
-			
-			// If the above pattern didn't find anything, try a simpler approach
-			if (knownrebecsBody.contains(className)) {
-				System.out.println("[DEBUG] Class '" + className + "' exists in knownrebecs body, but pattern didn't match");
-				System.out.println("[DEBUG] Trying simpler pattern...");
 				
-				// Simple word boundary search within knownrebecs
-				Pattern simplePattern = Pattern.compile("\\b(" + Pattern.quote(className) + ")\\b");
-				Matcher simpleMatcher = simplePattern.matcher(knownrebecsBody);
-				while (simpleMatcher.find()) {
-					int relativeOffset = simpleMatcher.start(1);
-					int absoluteOffset = knownrebecsBodyOffset + relativeOffset;
-					
-					// Check if this looks like a class declaration by checking what comes after
-					String afterClass = knownrebecsBody.substring(simpleMatcher.end());
-					if (afterClass.matches("\\s+[\\w\\s,]+;.*")) {
-						System.out.println("[DEBUG] Found class '" + className + "' with simple pattern at relative offset: " + relativeOffset + ", absolute: " + absoluteOffset);
-						occurrences.add(new SymbolOccurrence(file, absoluteOffset, className.length(), className,
-								SymbolType.CLASS_NAME, new SymbolContext(null, null, false)));
-					}
+				// Check if this looks like a class declaration by examining the context
+				String beforeClass = knownrebecsBody.substring(0, relativeOffset);
+				String afterClass = knownrebecsBody.substring(simpleMatcher.end());
+				
+				// Check if it's at the start of a line (after whitespace only)
+				// and followed by instance names (whitespace + identifiers + semicolon)
+				String[] beforeLines = beforeClass.split("\\n");
+				String currentLinePrefix = beforeLines[beforeLines.length - 1];
+				
+				// If the current line before the class name only contains whitespace,
+				// and what comes after matches the pattern for instance names
+				if (currentLinePrefix.trim().isEmpty() && afterClass.matches("\\s+[\\w\\s,]+;.*")) {
+					System.out.println("[DEBUG] Found class '" + className + "' in knownrebecs at relative offset: " + relativeOffset + ", absolute: " + absoluteOffset);
+					occurrences.add(new SymbolOccurrence(file, absoluteOffset, className.length(), className,
+							SymbolType.CLASS_NAME, new SymbolContext(null, null, false)));
 				}
 			}
 		} else {
@@ -504,7 +495,7 @@ public class RebecaRefactoringParticipant {
 	}
 
 	/**
-	 * Find instance references in property files (instance.field)
+	 * Find instance references in property files (instance.field and standalone instance)
 	 */
 	private List<SymbolOccurrence> findInstanceReferencesInProperty(IFile file, String content, String instanceName) {
 		List<SymbolOccurrence> occurrences = new ArrayList<>();
@@ -516,6 +507,25 @@ public class RebecaRefactoringParticipant {
 			int offset = matcher.start(1);
 			occurrences.add(new SymbolOccurrence(file, offset, instanceName.length(), instanceName,
 					SymbolType.INSTANCE_NAME, new SymbolContext(null, null, false)));
+		}
+
+		// Pattern for standalone instance references (not followed by dot)
+		Pattern standaloneInstancePattern = Pattern.compile("\\b(" + Pattern.quote(instanceName) + ")\\b(?!\\.)");
+		matcher = standaloneInstancePattern.matcher(content);
+		while (matcher.find()) {
+			int offset = matcher.start(1);
+			// Check if this is not already found by the previous pattern
+			boolean alreadyFound = false;
+			for (SymbolOccurrence existing : occurrences) {
+				if (existing.offset == offset) {
+					alreadyFound = true;
+					break;
+				}
+			}
+			if (!alreadyFound) {
+				occurrences.add(new SymbolOccurrence(file, offset, instanceName.length(), instanceName,
+						SymbolType.INSTANCE_NAME, new SymbolContext(null, null, false)));
+			}
 		}
 
 		return occurrences;

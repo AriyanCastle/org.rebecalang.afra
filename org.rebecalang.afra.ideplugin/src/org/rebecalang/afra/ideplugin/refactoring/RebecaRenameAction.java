@@ -538,18 +538,18 @@ public class RebecaRenameAction extends AbstractHandler {
                 return null;
             }
             
-            // Determine symbol type based on context
-            System.out.println("[RebecaRename DEBUG] Determining symbol type");
-            RebecaRefactoringParticipant.SymbolType symbolType = determineSymbolType(document, wordRegion.getOffset(), word);
-            System.out.println("[RebecaRename DEBUG] Symbol type: " + symbolType);
-            if (symbolType == null) {
-                System.out.println("[RebecaRename DEBUG] Symbol type is null");
-                return null;
-            }
-            
-            SymbolAnalysisResult result = new SymbolAnalysisResult(word, symbolType);
-            System.out.println("[RebecaRename DEBUG] Analysis result created: " + result.symbolName + " (" + result.symbolType + ")");
-            return result;
+        // Determine symbol type based on context
+        System.out.println("[RebecaRename DEBUG] Determining symbol type");
+        RebecaRefactoringParticipant.SymbolType symbolType = determineSymbolType(document, wordRegion.getOffset(), word);
+        System.out.println("[RebecaRename DEBUG] Symbol type: " + symbolType);
+        if (symbolType == null) {
+            System.out.println("[RebecaRename DEBUG] Symbol type is null");
+            return null;
+        }
+        
+        SymbolAnalysisResult result = new SymbolAnalysisResult(word, symbolType);
+        System.out.println("[RebecaRename DEBUG] Analysis result created: " + result.symbolName + " (" + result.symbolType + ")");
+        return result;
             
         } catch (BadLocationException e) {
             System.out.println("[RebecaRename DEBUG] BadLocationException in analyzeSymbolAtPosition: " + e.getMessage());
@@ -602,12 +602,11 @@ public class RebecaRenameAction extends AbstractHandler {
             String content = document.get();
             
             // Get surrounding context
-            int lineNumber = document.getLineOfOffset(offset);
-            IRegion lineInfo = document.getLineInformation(lineNumber);
-            int lineStart = lineInfo.getOffset();
-            String line = content.substring(lineStart, lineStart + lineInfo.getLength());
+            int lineStart = document.getLineOffset(document.getLineOfOffset(offset));
+            int lineEnd = lineStart + document.getLineLength(document.getLineOfOffset(offset));
+            String line = content.substring(lineStart, lineEnd);
             
-            int positionInLine = Math.min(offset - lineStart, line.length());
+            int positionInLine = offset - lineStart;
             
             // Check for class declaration: reactiveclass ClassName
             if (line.matches(".*\\breactiveclass\\s+" + java.util.regex.Pattern.quote(word) + "\\b.*")) {
@@ -627,46 +626,68 @@ public class RebecaRenameAction extends AbstractHandler {
             
             // Check for class usage in main block or knownrebecs
             String beforeWord = line.substring(0, positionInLine);
-            int afterStart = Math.min(positionInLine + word.length(), line.length());
-            String afterWord = line.substring(afterStart);
-            String beforeTrim = beforeWord.trim();
-            String afterTrim = afterWord.trim();
-
-            if (beforeTrim.isEmpty() && afterTrim.matches("\\w+.*")) {
+            String afterWord = line.substring(positionInLine + word.length());
+            
+            if (beforeWord.trim().isEmpty() && afterWord.matches("\\s+\\w+.*")) {
                 // Pattern: ClassName instanceName
                 return RebecaRefactoringParticipant.SymbolType.CLASS_NAME;
             }
-
+            
             // Check if it's in knownrebecs section
             if (isInSection(content, offset, "knownrebecs")) {
                 System.out.println("[RebecaRename DEBUG] In knownrebecs section, word: '" + word + "'");
-                System.out.println("[RebecaRename DEBUG] beforeTrim: '" + beforeTrim + "'");
-                System.out.println("[RebecaRename DEBUG] afterTrim: '" + afterTrim + "'");
+                System.out.println("[RebecaRename DEBUG] beforeWord: '" + beforeWord + "'");
+                System.out.println("[RebecaRename DEBUG] afterWord: '" + afterWord + "'");
                 System.out.println("[RebecaRename DEBUG] full line: '" + line + "'");
-
-                if (beforeTrim.isEmpty()) {
+                
+                // Check if this is a class name by looking at the pattern: ClassName varName1, varName2, ...;
+                // beforeWord should only contain whitespace (indentation), and afterWord should have variables
+                if (beforeWord.trim().isEmpty() && afterWord.matches("\\s+[\\w\\s,]+;.*")) {
+                    // Pattern: ClassName varName1, varName2, ...;
                     System.out.println("[RebecaRename DEBUG] Detected as CLASS_NAME");
                     return RebecaRefactoringParticipant.SymbolType.CLASS_NAME;
+                } 
+                // Check if it's before a comma or semicolon (variable/instance name)
+                else if (afterWord.matches("\\s*[,;].*") || afterWord.matches("\\s+\\w+.*[,;].*")) {
+                    // Pattern: varName1, varName2, ... or varName;
+                    System.out.println("[RebecaRename DEBUG] Detected as INSTANCE_NAME");
+                    return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
                 }
-
-                System.out.println("[RebecaRename DEBUG] Detected as INSTANCE_NAME");
-                return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
+                // If preceding by a class name, it's an instance name
+                else if (beforeWord.matches(".*\\w\\s*$")) {
+                    System.out.println("[RebecaRename DEBUG] Detected as INSTANCE_NAME (after class)");
+                    return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
+                } else {
+                    // Default to instance name in knownrebecs
+                    System.out.println("[RebecaRename DEBUG] Defaulting to INSTANCE_NAME");
+                    return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
+                }
             }
-
+            
             // Check if it's in main section  
             if (isInSection(content, offset, "main")) {
                 System.out.println("[RebecaRename DEBUG] In main section, word: '" + word + "'");
-                System.out.println("[RebecaRename DEBUG] beforeTrim: '" + beforeTrim + "'");
-                System.out.println("[RebecaRename DEBUG] afterTrim: '" + afterTrim + "'");
+                System.out.println("[RebecaRename DEBUG] beforeWord: '" + beforeWord + "'");
+                System.out.println("[RebecaRename DEBUG] afterWord: '" + afterWord + "'");
                 System.out.println("[RebecaRename DEBUG] full line: '" + line + "'");
-
-                if (beforeTrim.isEmpty()) {
+                
+                // Check if this is a class usage: ClassName instanceName(params):();
+                if (beforeWord.trim().isEmpty() && afterWord.matches("\\s+\\w+\\s*\\([^\\)]*\\)\\s*:\\s*\\([^\\)]*\\)\\s*;.*")) {
+                    // Pattern: ClassName instanceName(params):();
                     System.out.println("[RebecaRename DEBUG] Detected as CLASS_NAME in main");
                     return RebecaRefactoringParticipant.SymbolType.CLASS_NAME;
                 }
-
-                System.out.println("[RebecaRename DEBUG] Detected as INSTANCE_NAME in main");
-                return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
+                // Check if this is an instance name: ClassName instanceName(params):();
+                else if (beforeWord.matches(".*\\w\\s+$") && afterWord.matches("\\s*\\([^\\)]*\\)\\s*:\\s*\\([^\\)]*\\)\\s*;.*")) {
+                    // Pattern: instanceName after class name
+                    System.out.println("[RebecaRename DEBUG] Detected as INSTANCE_NAME in main");
+                    return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
+                }
+                // Check if it's a parameter reference inside parentheses
+                else if (beforeWord.matches(".*\\(.*") && afterWord.matches(".*\\).*")) {
+                    System.out.println("[RebecaRename DEBUG] Detected as INSTANCE_NAME (parameter reference) in main");
+                    return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
+                }
             }
             
             // Check if it's in statevars section (variable declaration)
