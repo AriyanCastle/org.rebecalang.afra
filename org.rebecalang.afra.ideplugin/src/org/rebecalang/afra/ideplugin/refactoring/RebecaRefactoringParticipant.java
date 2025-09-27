@@ -271,10 +271,12 @@ public class RebecaRefactoringParticipant {
 			
 			// Pattern for class names in knownrebecs: should match ClassName at the beginning of a line or after whitespace
 			// Pattern: (start_of_line or whitespace)(ClassName)(whitespace)(instance_names);
-			Pattern knownrebecsClassPattern = Pattern.compile("(?:^|\\s)(" + Pattern.quote(className) + ")\\s+[\\w\\s,]+;",
+			Pattern knownrebecsClassPattern = Pattern.compile("(?:^|\\s)(" + Pattern.quote(className) + ")(?=\\s+[\\w\\s,]+;)",
 					Pattern.MULTILINE);
 			Matcher knownrebecsMatcher = knownrebecsClassPattern.matcher(knownrebecsBody);
+			boolean foundMatch = false;
 			while (knownrebecsMatcher.find()) {
+				foundMatch = true;
 				int relativeOffset = knownrebecsMatcher.start(1);
 				int absoluteOffset = knownrebecsBodyOffset + relativeOffset;
 				System.out.println("[DEBUG] Found class '" + className + "' in knownrebecs at relative offset: " + relativeOffset + ", absolute: " + absoluteOffset);
@@ -283,13 +285,7 @@ public class RebecaRefactoringParticipant {
 			}
 			
 			// If the above pattern didn't find anything, try a simpler approach
-			if (!knownrebecsBody.contains(className)) continue;
-			
-			boolean foundWithComplexPattern = false;
-			knownrebecsMatcher.reset();
-			if(knownrebecsMatcher.find()) foundWithComplexPattern = true;
-
-			if (!foundWithComplexPattern) {
+			if (!foundMatch) {
 				System.out.println("[DEBUG] Class '" + className + "' exists in knownrebecs body, but pattern didn't match");
 				System.out.println("[DEBUG] Trying simpler pattern...");
 				

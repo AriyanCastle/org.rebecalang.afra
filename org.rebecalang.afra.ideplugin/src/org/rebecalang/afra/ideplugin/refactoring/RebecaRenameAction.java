@@ -684,7 +684,7 @@ public class RebecaRenameAction extends AbstractHandler {
                     return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
                 }
                 // Check if it's a parameter reference inside parentheses
-                else if (beforeWord.matches(".*\\(.*") && afterWord.matches(".*\\).*")) {
+                else if (content.substring(0, offset).matches(".*\\([^)]*")) {
                     System.out.println("[RebecaRename DEBUG] Detected as INSTANCE_NAME (parameter reference) in main");
                     return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
                 }
