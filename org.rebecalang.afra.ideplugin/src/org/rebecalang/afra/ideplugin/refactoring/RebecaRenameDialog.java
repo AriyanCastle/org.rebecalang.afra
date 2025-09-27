@@ -19,9 +19,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-/**
- * Dialog for configuring Rebeca symbol renaming
- */
 public class RebecaRenameDialog extends Dialog {
     
     private String originalName;
@@ -39,7 +36,7 @@ public class RebecaRenameDialog extends Dialog {
         this.newName = originalName;
         this.symbolType = symbolType;
         this.occurrences = occurrences;
-        this.selectedOccurrences = occurrences; // Initially all selected
+        this.selectedOccurrences = occurrences;
     }
     
     @Override
@@ -54,7 +51,6 @@ public class RebecaRenameDialog extends Dialog {
         Composite container = (Composite) super.createDialogArea(parent);
         container.setLayout(new GridLayout(2, false));
         
-        // Original name label
         Label originalLabel = new Label(container, SWT.NONE);
         originalLabel.setText("Current name:");
         originalLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
@@ -64,7 +60,6 @@ public class RebecaRenameDialog extends Dialog {
         originalNameLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         originalNameLabel.setFont(org.eclipse.jface.resource.JFaceResources.getFontRegistry().getBold(org.eclipse.jface.resource.JFaceResources.DEFAULT_FONT));
         
-        // New name input
         Label newLabel = new Label(container, SWT.NONE);
         newLabel.setText("New name:");
         newLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
@@ -81,7 +76,6 @@ public class RebecaRenameDialog extends Dialog {
             }
         });
         
-        // Occurrences section
         Label occurrencesLabel = new Label(container, SWT.NONE);
         occurrencesLabel.setText("Occurrences to rename:");
         GridData occurrencesLabelData = new GridData(SWT.LEFT, SWT.TOP, false, false);
@@ -89,7 +83,6 @@ public class RebecaRenameDialog extends Dialog {
         occurrencesLabelData.verticalIndent = 10;
         occurrencesLabel.setLayoutData(occurrencesLabelData);
         
-        // Occurrences table
         occurrenceViewer = CheckboxTableViewer.newCheckList(container, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
         GridData tableData = new GridData(SWT.FILL, SWT.FILL, true, true);
         tableData.horizontalSpan = 2;
@@ -101,7 +94,6 @@ public class RebecaRenameDialog extends Dialog {
         occurrenceViewer.setInput(occurrences);
         occurrenceViewer.setAllChecked(true);
         
-        // Summary label
         Label summaryLabel = new Label(container, SWT.NONE);
         summaryLabel.setText(String.format("Found %d occurrence(s) of '%s' in %d file(s)", 
                                           occurrences.size(), originalName, getUniqueFileCount()));
@@ -123,7 +115,6 @@ public class RebecaRenameDialog extends Dialog {
     
     @Override
     protected void okPressed() {
-        // Get selected occurrences
         Object[] checkedElements = occurrenceViewer.getCheckedElements();
         selectedOccurrences = new java.util.ArrayList<>();
         for (Object element : checkedElements) {
@@ -143,7 +134,6 @@ public class RebecaRenameDialog extends Dialog {
             return false;
         }
         
-        // Check if it's a valid identifier
         name = name.trim();
         if (!Character.isJavaIdentifierStart(name.charAt(0))) {
             return false;
@@ -155,7 +145,6 @@ public class RebecaRenameDialog extends Dialog {
             }
         }
         
-        // Check if it's not a reserved keyword
         return !isReservedKeyword(name);
     }
     
@@ -202,9 +191,7 @@ public class RebecaRenameDialog extends Dialog {
         return selectedOccurrences;
     }
     
-    /**
-     * Label provider for occurrence display
-     */
+
     private class OccurrenceLabelProvider extends LabelProvider {
         @Override
         public String getText(Object element) {
