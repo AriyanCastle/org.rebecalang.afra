@@ -272,16 +272,16 @@ public class RebecaRefactoringParticipant {
 			// Pattern to find class usage: A whole word that is the class name,
 		    // followed by at least one instance name.
 			Pattern classUsageInKnownrebecs = Pattern.compile("\\b(" + Pattern.quote(className) + ")\\b(?=\\s+\\w+)");
-			Matcher matcher = classUsageInKnownrebecs.matcher(knownrebecsBody);
-			while (matcher.find()) {
+			Matcher knownrebecsMatcher = classUsageInKnownrebecs.matcher(knownrebecsBody);
+			while (knownrebecsMatcher.find()) {
 		        // We need to double-check this is not an instance name.
 		        // A class name should be the first word on the line (ignoring whitespace).
-		        int matchStart = matcher.start(1);
+		        int matchStart = knownrebecsMatcher.start(1);
 		        int lineStart = knownrebecsBody.lastIndexOf('\n', matchStart) + 1;
 		        String textBefore = knownrebecsBody.substring(lineStart, matchStart);
 
 		        if (textBefore.trim().isEmpty()) {
-		            int relativeOffset = matcher.start(1);
+		            int relativeOffset = knownrebecsMatcher.start(1);
 		            int absoluteOffset = knownrebecsBodyOffset + relativeOffset;
 		            occurrences.add(new SymbolOccurrence(file, absoluteOffset, className.length(), className,
 		                    SymbolType.CLASS_NAME, new SymbolContext(null, null, false)));
@@ -352,9 +352,9 @@ public class RebecaRefactoringParticipant {
 
 		// Pattern for variable usage: standalone variable references
 		Pattern variableUsagePattern = Pattern.compile("\\b(" + Pattern.quote(variableName) + ")\\b");
-		Matcher matcher = variableUsagePattern.matcher(content);
-		while (matcher.find()) {
-			int offset = matcher.start(1);
+		Matcher variableMatcher = variableUsagePattern.matcher(content);
+		while (variableMatcher.find()) {
+			int offset = variableMatcher.start(1);
 			// Skip if it's in a declaration context or part of another identifier
 			if (!isInDeclarationContext(content, offset) && !isPartOfLargerIdentifier(content, offset, variableName)) {
 				occurrences.add(new SymbolOccurrence(file, offset, variableName.length(), variableName,
@@ -411,9 +411,9 @@ public class RebecaRefactoringParticipant {
 
 		// Pattern for instance usage: instanceName.method() or standalone instanceName
 		Pattern instanceUsagePattern = Pattern.compile("\\b(" + Pattern.quote(instanceName) + ")(?:\\.|\\b)");
-		Matcher matcher = instanceUsagePattern.matcher(content);
-		while (matcher.find()) {
-			int offset = matcher.start(1);
+		Matcher instanceMatcher = instanceUsagePattern.matcher(content);
+		while (instanceMatcher.find()) {
+			int offset = instanceMatcher.start(1);
 			if (!declarationOffsets.contains(offset)) {
 				occurrences.add(new SymbolOccurrence(file, offset, instanceName.length(), instanceName,
 						SymbolType.INSTANCE_NAME, new SymbolContext(null, null, false)));
@@ -476,18 +476,18 @@ public class RebecaRefactoringParticipant {
 
 		// Pattern for property definition: propertyName = expression
 		Pattern propertyDefPattern = Pattern.compile("\\b(" + Pattern.quote(propertyName) + ")\\s*=");
-		Matcher matcher = propertyDefPattern.matcher(content);
-		while (matcher.find()) {
-			int offset = matcher.start(1);
+		Matcher propertyMatcher = propertyDefPattern.matcher(content);
+		while (propertyMatcher.find()) {
+			int offset = propertyMatcher.start(1);
 			occurrences.add(new SymbolOccurrence(file, offset, propertyName.length(), propertyName,
 					SymbolType.PROPERTY_NAME, new SymbolContext(null, null, true)));
 		}
 
 		// Pattern for property usage: standalone propertyName
 		Pattern propertyUsagePattern = Pattern.compile("\\b(" + Pattern.quote(propertyName) + ")\\b");
-		matcher = propertyUsagePattern.matcher(content);
-		while (matcher.find()) {
-			int offset = matcher.start(1);
+		propertyMatcher = propertyUsagePattern.matcher(content);
+		while (propertyMatcher.find()) {
+			int offset = propertyMatcher.start(1);
 			if (!isInPropertyDefinition(content, offset)) {
 				occurrences.add(new SymbolOccurrence(file, offset, propertyName.length(), propertyName,
 						SymbolType.PROPERTY_NAME, new SymbolContext(null, null, false)));
@@ -505,9 +505,9 @@ public class RebecaRefactoringParticipant {
 
 		// Pattern for instance.field references
 		Pattern instanceRefPattern = Pattern.compile("\\b(" + Pattern.quote(instanceName) + ")\\.");
-		Matcher matcher = instanceRefPattern.matcher(content);
-		while (matcher.find()) {
-			int offset = matcher.start(1);
+		Matcher instanceMatcher = instanceRefPattern.matcher(content);
+		while (instanceMatcher.find()) {
+			int offset = instanceMatcher.start(1);
 			occurrences.add(new SymbolOccurrence(file, offset, instanceName.length(), instanceName,
 					SymbolType.INSTANCE_NAME, new SymbolContext(null, null, false)));
 		}
@@ -523,9 +523,9 @@ public class RebecaRefactoringParticipant {
 
 		// Pattern for instance.variableName references
 		Pattern variableRefPattern = Pattern.compile("\\w+\\.(" + Pattern.quote(variableName) + ")\\b");
-		Matcher matcher = variableRefPattern.matcher(content);
-		while (matcher.find()) {
-			int offset = matcher.start(1);
+		Matcher variableMatcher = variableRefPattern.matcher(content);
+		while (variableMatcher.find()) {
+			int offset = variableMatcher.start(1);
 			occurrences.add(new SymbolOccurrence(file, offset, variableName.length(), variableName,
 					SymbolType.VARIABLE_NAME, new SymbolContext(null, null, false)));
 		}
@@ -541,9 +541,9 @@ public class RebecaRefactoringParticipant {
 		
 		// Property names typically don't appear in rebeca files, but search for any potential references
 		Pattern propertyRefPattern = Pattern.compile("\\b(" + Pattern.quote(propertyName) + ")\\b");
-		Matcher matcher = propertyRefPattern.matcher(content);
-		while (matcher.find()) {
-			int offset = matcher.start(1);
+		Matcher propertyMatcher = propertyRefPattern.matcher(content);
+		while (propertyMatcher.find()) {
+			int offset = propertyMatcher.start(1);
 			occurrences.add(new SymbolOccurrence(file, offset, propertyName.length(), propertyName,
 					SymbolType.PROPERTY_NAME, new SymbolContext(null, null, false)));
 		}
@@ -559,9 +559,9 @@ public class RebecaRefactoringParticipant {
 		
 		// Class names typically don't appear in property files, but search for any potential references
 		Pattern classRefPattern = Pattern.compile("\\b(" + Pattern.quote(className) + ")\\b");
-		Matcher matcher = classRefPattern.matcher(content);
-		while (matcher.find()) {
-			int offset = matcher.start(1);
+		Matcher classMatcher = classRefPattern.matcher(content);
+		while (classMatcher.find()) {
+			int offset = classMatcher.start(1);
 			occurrences.add(new SymbolOccurrence(file, offset, className.length(), className,
 					SymbolType.CLASS_NAME, new SymbolContext(null, null, false)));
 		}
@@ -577,9 +577,9 @@ public class RebecaRefactoringParticipant {
 		
 		// Method names typically don't appear in property files, but search for any potential references
 		Pattern methodRefPattern = Pattern.compile("\\b(" + Pattern.quote(methodName) + ")\\b");
-		Matcher matcher = methodRefPattern.matcher(content);
-		while (matcher.find()) {
-			int offset = matcher.start(1);
+		Matcher methodMatcher = methodRefPattern.matcher(content);
+		while (methodMatcher.find()) {
+			int offset = methodMatcher.start(1);
 			occurrences.add(new SymbolOccurrence(file, offset, methodName.length(), methodName,
 					SymbolType.METHOD_NAME, new SymbolContext(null, null, false)));
 		}
