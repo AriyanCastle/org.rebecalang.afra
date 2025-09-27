@@ -615,8 +615,8 @@ public class RebecaRenameAction extends AbstractHandler {
 			}
 
 			// Check for constructor declaration.
-			String trimmedLine = line.trim();
-			if (trimmedLine.startsWith(word + "(") || trimmedLine.startsWith(word + " (")) {
+			java.util.regex.Pattern ctorDeclPattern = java.util.regex.Pattern.compile("^\\s*" + java.util.regex.Pattern.quote(word) + "\\s*\\(.*");
+			if (ctorDeclPattern.matcher(line).find()) {
 				// And a class with that name exists in the file.
 				if (content.contains("reactiveclass " + word)) {
 					return RebecaRefactoringParticipant.SymbolType.CLASS_NAME;

@@ -251,6 +251,15 @@ public class RebecaRefactoringParticipant {
 					new SymbolContext(className, null, true)));
 		}
 
+		// Pattern for constructor: ClassName()
+		Pattern constructorPattern = Pattern.compile("^\\s*(" + Pattern.quote(className) + ")\\s*\\(", Pattern.MULTILINE);
+		matcher = constructorPattern.matcher(content);
+		while (matcher.find()) {
+			int offset = matcher.start(1);
+			occurrences.add(new SymbolOccurrence(file, offset, className.length(), className, SymbolType.CLASS_NAME,
+					new SymbolContext(className, null, true)));
+		}
+
 		// Pattern for class usage in main block: ClassName identifier
 		Pattern classUsagePattern = Pattern
 				.compile("\\b(" + Pattern.quote(className) + ")\\s+\\w+\\s*\\([^)]*\\)\\s*:\\s*\\([^)]*\\)\\s*;");
