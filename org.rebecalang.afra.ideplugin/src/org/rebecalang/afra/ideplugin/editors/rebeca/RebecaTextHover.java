@@ -16,9 +16,6 @@ import org.eclipse.ui.editors.text.EditorsUI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Provides hover information for Rebeca code elements (methods and classes)
- */
 public class RebecaTextHover implements ITextHover, ITextHoverExtension {
     
     private final RebecaEditor editor;
@@ -239,8 +236,7 @@ public class RebecaTextHover implements ITextHover, ITextHoverExtension {
         return braceCount == 0 ? index - 1 : -1;
     }
   
-     * Cleans up documentation comment formatting and adds semantic formatting
-     */
+    
     private String cleanDocumentation(String documentation) {
         if (documentation == null) {
             return "";
