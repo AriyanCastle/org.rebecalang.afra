@@ -269,41 +269,23 @@ public class RebecaRefactoringParticipant {
 			String knownrebecsBody = allKnownrebecsMatcher.group(1);
 			int knownrebecsBodyOffset = allKnownrebecsMatcher.start(1);
 			
-			// Pattern for class names in knownrebecs: should match ClassName at the beginning of a line or after whitespace
-			// Pattern: (start_of_line or whitespace)(ClassName)(whitespace)(instance_names);
-			Pattern knownrebecsClassPattern = Pattern.compile("(?:^|\\s)(" + Pattern.quote(className) + ")(?=\\s+[\\w\\s,]+;)",
-					Pattern.MULTILINE);
-			Matcher knownrebecsMatcher = knownrebecsClassPattern.matcher(knownrebecsBody);
-			boolean foundMatch = false;
-			while (knownrebecsMatcher.find()) {
-				foundMatch = true;
-				int relativeOffset = knownrebecsMatcher.start(1);
-				int absoluteOffset = knownrebecsBodyOffset + relativeOffset;
-				System.out.println("[DEBUG] Found class '" + className + "' in knownrebecs at relative offset: " + relativeOffset + ", absolute: " + absoluteOffset);
-				occurrences.add(new SymbolOccurrence(file, absoluteOffset, className.length(), className,
-						SymbolType.CLASS_NAME, new SymbolContext(null, null, false)));
-			}
-			
-			// If the above pattern didn't find anything, try a simpler approach
-			if (!foundMatch) {
-				System.out.println("[DEBUG] Class '" + className + "' exists in knownrebecs body, but pattern didn't match");
-				System.out.println("[DEBUG] Trying simpler pattern...");
-				
-				// Simple word boundary search within knownrebecs
-				Pattern simplePattern = Pattern.compile("\\b(" + Pattern.quote(className) + ")\\b");
-				Matcher simpleMatcher = simplePattern.matcher(knownrebecsBody);
-				while (simpleMatcher.find()) {
-					int relativeOffset = simpleMatcher.start(1);
-					int absoluteOffset = knownrebecsBodyOffset + relativeOffset;
-					
-					// Check if this looks like a class declaration by checking what comes after
-					String afterClass = knownrebecsBody.substring(simpleMatcher.end());
-					if (afterClass.matches("\\s+[\\w\\s,]+;.*")) {
-						System.out.println("[DEBUG] Found class '" + className + "' with simple pattern at relative offset: " + relativeOffset + ", absolute: " + absoluteOffset);
-						occurrences.add(new SymbolOccurrence(file, absoluteOffset, className.length(), className,
-								SymbolType.CLASS_NAME, new SymbolContext(null, null, false)));
-					}
-				}
+			// Pattern to find class usage: A whole word that is the class name,
+		    // followed by at least one instance name.
+			Pattern classUsageInKnownrebecs = Pattern.compile("\\b(" + Pattern.quote(className) + ")\\b(?=\\s+\\w+)");
+			Matcher matcher = classUsageInKnownrebecs.matcher(knownrebecsBody);
+			while (matcher.find()) {
+		        // We need to double-check this is not an instance name.
+		        // A class name should be the first word on the line (ignoring whitespace).
+		        int matchStart = matcher.start(1);
+		        int lineStart = knownrebecsBody.lastIndexOf('\n', matchStart) + 1;
+		        String textBefore = knownrebecsBody.substring(lineStart, matchStart);
+
+		        if (textBefore.trim().isEmpty()) {
+		            int relativeOffset = matcher.start(1);
+		            int absoluteOffset = knownrebecsBodyOffset + relativeOffset;
+		            occurrences.add(new SymbolOccurrence(file, absoluteOffset, className.length(), className,
+		                    SymbolType.CLASS_NAME, new SymbolContext(null, null, false)));
+		        }
 			}
 		}
 
@@ -388,6 +370,7 @@ public class RebecaRefactoringParticipant {
 	 */
 	private List<SymbolOccurrence> findInstanceNameOccurrences(IFile file, String content, String instanceName) {
 		List<SymbolOccurrence> occurrences = new ArrayList<>();
+		java.util.Set<Integer> declarationOffsets = new java.util.HashSet<>();
 
 		// Pattern for instance declarations in knownrebecs
 		Pattern allKnownrebecsPattern = Pattern.compile("knownrebecs\\s*\\{([^}]*)\\}", Pattern.DOTALL);
@@ -408,6 +391,7 @@ public class RebecaRefactoringParticipant {
 						int absoluteOffset = knownrebecsBodyOffset + relativeOffset;
 						occurrences.add(new SymbolOccurrence(file, absoluteOffset, instanceName.length(), instanceName,
 								SymbolType.INSTANCE_NAME, new SymbolContext(null, null, true)));
+						declarationOffsets.add(absoluteOffset);
 					}
 				}
 			}
@@ -422,6 +406,7 @@ public class RebecaRefactoringParticipant {
 			System.out.println("[DEBUG] Found instance '" + instanceName + "' in main section at relative offset: " + relativeOffset + ", absolute: " + absoluteOffset);
 			occurrences.add(new SymbolOccurrence(file, absoluteOffset, instanceName.length(), instanceName,
 					SymbolType.INSTANCE_NAME, new SymbolContext(null, null, true)));
+			declarationOffsets.add(absoluteOffset);
 		}
 
 		// Pattern for instance usage: instanceName.method() or standalone instanceName
@@ -429,7 +414,7 @@ public class RebecaRefactoringParticipant {
 		Matcher matcher = instanceUsagePattern.matcher(content);
 		while (matcher.find()) {
 			int offset = matcher.start(1);
-			if (!isInDeclarationContext(content, offset)) {
+			if (!declarationOffsets.contains(offset)) {
 				occurrences.add(new SymbolOccurrence(file, offset, instanceName.length(), instanceName,
 						SymbolType.INSTANCE_NAME, new SymbolContext(null, null, false)));
 			}
