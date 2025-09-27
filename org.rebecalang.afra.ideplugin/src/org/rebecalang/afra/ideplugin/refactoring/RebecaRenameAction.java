@@ -608,15 +608,17 @@ public class RebecaRenameAction extends AbstractHandler {
             
             int positionInLine = offset - lineStart;
             
-            // Check for class declaration: reactiveclass ClassName
-            if (line.matches(".*\\breactiveclass\\s+" + java.util.regex.Pattern.quote(word) + "\\b.*")) {
-                return RebecaRefactoringParticipant.SymbolType.CLASS_NAME;
-            }
-            
-			// Check for constructor declaration: ClassName()
-			if (line.matches("\\s*" + java.util.regex.Pattern.quote(word) + "\\s*\\(.*")) {
-				// To be sure, check if there is a reactiveclass declaration for this word in the file
-				if (content.matches("(?s).*\\breactiveclass\\s+" + java.util.regex.Pattern.quote(word) + "\\b.*")) {
+			// Check for class declaration first, very specific pattern.
+			java.util.regex.Pattern classDeclPattern = java.util.regex.Pattern.compile("\\breactiveclass\\s+(" + java.util.regex.Pattern.quote(word) + ")\\b");
+			if (classDeclPattern.matcher(line).find()) {
+				return RebecaRefactoringParticipant.SymbolType.CLASS_NAME;
+			}
+
+			// Check for constructor declaration.
+			String trimmedLine = line.trim();
+			if (trimmedLine.startsWith(word + "(") || trimmedLine.startsWith(word + " (")) {
+				// And a class with that name exists in the file.
+				if (content.contains("reactiveclass " + word)) {
 					return RebecaRefactoringParticipant.SymbolType.CLASS_NAME;
 				}
 			}
