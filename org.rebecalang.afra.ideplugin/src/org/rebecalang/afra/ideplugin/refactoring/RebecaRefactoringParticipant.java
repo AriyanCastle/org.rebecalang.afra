@@ -275,11 +275,11 @@ public class RebecaRefactoringParticipant {
 			
 			// Pattern for class names in knownrebecs: should match ClassName at the beginning of a line or after whitespace
 			// Pattern: (start_of_line or whitespace)(ClassName)(whitespace)(instance_names);
-			Pattern knownrebecsClassPattern = Pattern.compile("(?:^|\\s+)(" + Pattern.quote(className) + ")\\s+[\\w\\s,]+;",
+			Pattern knownrebecsClassPattern = Pattern.compile("(^|\\s+)(" + Pattern.quote(className) + ")\\s+[\\w\\s,]+;",
 					Pattern.MULTILINE);
 			Matcher knownrebecsMatcher = knownrebecsClassPattern.matcher(knownrebecsBody);
 			while (knownrebecsMatcher.find()) {
-				int relativeOffset = knownrebecsMatcher.start(1);
+				int relativeOffset = knownrebecsMatcher.start(2);
 				int absoluteOffset = knownrebecsBodyOffset + relativeOffset;
 				System.out.println("[DEBUG] Found class '" + className + "' in knownrebecs at relative offset: " + relativeOffset + ", absolute: " + absoluteOffset);
 				occurrences.add(new SymbolOccurrence(file, absoluteOffset, className.length(), className,
