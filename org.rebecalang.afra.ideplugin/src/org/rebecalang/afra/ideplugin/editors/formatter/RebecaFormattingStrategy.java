@@ -5,9 +5,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.formatter.IFormattingStrategy;
 
-/**
- * Formatting strategy for Rebeca files
- */
 public class RebecaFormattingStrategy implements IFormattingStrategy {
     
     private final RebecaFormatter formatter;
@@ -18,7 +15,6 @@ public class RebecaFormattingStrategy implements IFormattingStrategy {
     
     @Override
     public void formatterStarts(String initialIndentation) {
-        // No initialization needed
     }
     
     @Override
@@ -28,11 +24,9 @@ public class RebecaFormattingStrategy implements IFormattingStrategy {
         }
         
         try {
-            // Create a temporary document to use the formatter
             IDocument tempDoc = new org.eclipse.jface.text.Document(content);
             return formatter.format(tempDoc);
         } catch (Exception e) {
-            // If formatting fails, return original content
             System.err.println("Formatting failed: " + e.getMessage());
             return content;
         }
@@ -40,12 +34,8 @@ public class RebecaFormattingStrategy implements IFormattingStrategy {
     
     @Override
     public void formatterStops() {
-        // No cleanup needed
     }
     
-    /**
-     * Format a specific region of a document
-     */
     public String formatRegion(IDocument document, IRegion region) {
         try {
             return formatter.format(document, region);
@@ -58,10 +48,6 @@ public class RebecaFormattingStrategy implements IFormattingStrategy {
             }
         }
     }
-    
-    /**
-     * Format the entire document
-     */
     public String formatDocument(IDocument document) {
         try {
             return formatter.format(document);

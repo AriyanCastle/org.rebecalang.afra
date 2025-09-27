@@ -46,12 +46,12 @@ public class CompletionProcessor implements IContentAssistProcessor {
 	RebecaModelCompiler modelCompiler;
 	
 	private RebecaEditor editor;
-	private static String[] keywords = {
+	private static final String[] keywords = {
 		"reactiveclass", "knownrebecs", "statevars", "msgsrv", "main", 
 		"if", "else", "self", "true", "false", "for", "while", "break", 
 		"after", "deadline", "delay", "sender"
 	};
-	private static String[] types = {"boolean", "byte", "int", "short"};
+	private static final String[] types = {"boolean", "byte", "int", "short"};
 	
 	public CompletionProcessor(RebecaEditor editor) {
 		this.editor = editor;
@@ -115,7 +115,6 @@ public class CompletionProcessor implements IContentAssistProcessor {
 				return;
 			}
 			
-			// Add methods
 			if (symbolTable.getmethodSymbolTable() != null && symbolTable.getmethodSymbolTable().get(classType) != null) {
 				Enumeration<String> keys = symbolTable.getmethodSymbolTable().get(classType).keys();
 				while (keys.hasMoreElements()) {
@@ -126,7 +125,6 @@ public class CompletionProcessor implements IContentAssistProcessor {
 				}
 			}
 			
-			// Add fields
 			if (symbolTable.getVariableSymbolTable() != null && symbolTable.getVariableSymbolTable().get(classType) != null) {
 				Enumeration<String> keys = symbolTable.getVariableSymbolTable().get(classType).keys();
 				while (keys.hasMoreElements()) {
@@ -145,38 +143,24 @@ public class CompletionProcessor implements IContentAssistProcessor {
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		ArrayList<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		
-		try {
-			System.out.println("CompletionProcessor.computeCompletionProposals called with offset: " + offset);
-			
+		try {			
 			IDocument document = viewer.getDocument();
-			
-			// Safety check for offset
 			if (offset <= 0 || offset > document.getLength()) {
 				System.out.println("Invalid offset, returning empty proposals");
 				return new ICompletionProposal[0];
 			}
-			
-			// Get current word being typed
-			String currentWord = getCurrentWord(document, offset);
+						String currentWord = getCurrentWord(document, offset);
 			if (currentWord == null) {
 				currentWord = "";
 			}
 			
-			System.out.println("Current word: '" + currentWord + "'");
 			
-			// Always provide basic keyword completion regardless of compilation status
 			addBasicCompletions(currentWord, offset, proposals);
-			
-			System.out.println("Added " + proposals.size() + " basic completions");
-			
-			// Try advanced completions (may fail if compilation fails)
+						
 			try {
 				addAdvancedCompletions(document, offset, currentWord, proposals);
-				System.out.println("Total completions after advanced: " + proposals.size());
 			} catch (Exception e) {
-				// Log the error but don't fail the entire completion
 				System.err.println("Advanced completion failed: " + e.getMessage());
-				// Continue with basic completions only
 			}
 			
 			return proposals.toArray(new ICompletionProposal[proposals.size()]);
@@ -184,13 +168,11 @@ public class CompletionProcessor implements IContentAssistProcessor {
 		} catch (Exception e) {
 			System.err.println("CompletionProcessor error: " + e.getMessage());
 			e.printStackTrace();
-			// Return empty array instead of null to prevent error sound
 			return new ICompletionProposal[0];
 		}	
 	}
 	
 	private void addBasicCompletions(String currentWord, int offset, ArrayList<ICompletionProposal> proposals) {
-		// Add keywords - ensure case-insensitive matching for better UX
 		for (String keyword : keywords) {
 			if (keyword.toLowerCase().startsWith(currentWord.toLowerCase())) {
 				proposals.add(new CompletionProposal(keyword, offset - currentWord.length(), 
@@ -198,7 +180,6 @@ public class CompletionProcessor implements IContentAssistProcessor {
 			}
 		}
 		
-		// Add types
 		for (String type : types) {
 			if (type.toLowerCase().startsWith(currentWord.toLowerCase())) {
 				proposals.add(new CompletionProposal(type, offset - currentWord.length(), 
@@ -219,7 +200,7 @@ public class CompletionProcessor implements IContentAssistProcessor {
 
 			IProject project = CompilationAndCodeGenerationProcess.getProject();
 			if (project == null) {
-				return; // No project context, skip advanced completions
+				return;
 			}
 			
 			Set<CompilerExtension> compationExtensions = 
@@ -234,7 +215,7 @@ public class CompletionProcessor implements IContentAssistProcessor {
 			SymbolTable symbolTable = compilationResult.getSecond();
 			
 			if (rebecaModel == null || rebecaModel.getRebecaCode() == null) {
-				return; // Compilation failed, skip advanced completions
+				return;
 			}
 			
 			int lineNumber = document.getLineOfOffset(offset);
@@ -252,7 +233,6 @@ public class CompletionProcessor implements IContentAssistProcessor {
 			}
 			
 		} finally {
-			// Clean up temp file
 			if (tempRebecaFile.exists()) {
 				tempRebecaFile.delete();
 			}
@@ -264,14 +244,13 @@ public class CompletionProcessor implements IContentAssistProcessor {
 		
 		if (rebecaModel.getRebecaCode().getMainDeclaration() == null || 
 			rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition() == null) {
-			// If we're in main but no objects defined yet, suggest class names for instantiation
 			if (isInInstantiationContext(currentWord)) {
 				addClassNames(rebecaModel, currentWord, offset, proposals);
 			}
 			return;
 		}
 		
-		// Check for methods and fields with dot notation
+		//check for methods and fields with dot notation
 		if (currentWord.length() > 0 && currentWord.charAt(currentWord.length()-1) == '.') {
 			String objectName = currentWord.substring(0, currentWord.length() - 1);
 			for (MainRebecDefinition mrd : rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition()) {
@@ -280,9 +259,9 @@ public class CompletionProcessor implements IContentAssistProcessor {
 				}
 			}
 		}
-		// Regular completion (no dot)
+		//regular completion (no dot)
 		else {
-			// Check for local variables (rebec instances in main)					
+			// check for local variables (rebec instances in main)					
 			for (MainRebecDefinition mrd : rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition()) {
 				if (mrd.getName() != null && mrd.getName().toLowerCase().startsWith(currentWord.toLowerCase())) {
 					proposals.add(new CompletionProposal(mrd.getName(), offset - currentWord.length(), 
@@ -290,7 +269,7 @@ public class CompletionProcessor implements IContentAssistProcessor {
 				}
 			}
 			
-			// Add class names for instantiation in main section
+			// add class names for instantiation in main section
 			if (isInInstantiationContext(currentWord)) {
 				addClassNames(rebecaModel, currentWord, offset, proposals);
 			}
@@ -307,7 +286,6 @@ public class CompletionProcessor implements IContentAssistProcessor {
 		for(ReactiveClassDeclaration rcd : rebecaModel.getRebecaCode().getReactiveClassDeclaration()) {
 			if (lineNumber >= rcd.getLineNumber() && lineNumber <= rcd.getEndLineNumber()) {
 				
-				// Getting all statevars and kownrebecs
 				List<FieldDeclaration> fields = new ArrayList<>();
 				if (rcd.getKnownRebecs() != null) {
 					fields.addAll(rcd.getKnownRebecs());
@@ -316,11 +294,11 @@ public class CompletionProcessor implements IContentAssistProcessor {
 					fields.addAll(rcd.getStatevars());
 				}
 				
-				// Check for method calls with dot notation
+				// check for method calls with dot notation
 				if (currentWord.length() > 0 && currentWord.charAt(currentWord.length()-1) == '.') {
 					String objectName = currentWord.substring(0, currentWord.length() - 1);
 
-					// Check for self methods
+					// check for self methods
 					if (objectName.equals("self")) {
 						List<MethodDeclaration> methods = new ArrayList<>();
 						if (rcd.getMsgsrvs() != null) {
@@ -337,7 +315,7 @@ public class CompletionProcessor implements IContentAssistProcessor {
 							}
 						}
 					}
-					// Check for methods for other classes
+					//check for methods for other classes
 					else {								
 						for (FieldDeclaration fd : fields) {
 							if (fd.getVariableDeclarators() != null) {
@@ -350,9 +328,9 @@ public class CompletionProcessor implements IContentAssistProcessor {
 						}
 					}
 				}
-				// Regular variable and method name completion (no dot)
+				// regular variable and method name completion (no dot)
 				else {
-					// Check for statevars and knownrebecs variables
+					// check for statevars and knownrebecs variables
 					for (FieldDeclaration fd : fields) {
 						if (fd.getVariableDeclarators() != null) {
 							for (VariableDeclarator vd : fd.getVariableDeclarators()) {	
@@ -364,7 +342,6 @@ public class CompletionProcessor implements IContentAssistProcessor {
 						}
 					}
 					
-					// Add method names (msgsrv methods) for completion
 					List<MethodDeclaration> methods = new ArrayList<>();
 					if (rcd.getMsgsrvs() != null) {
 						methods.addAll(rcd.getMsgsrvs());
@@ -380,13 +357,11 @@ public class CompletionProcessor implements IContentAssistProcessor {
 						}
 					}
 					
-					// Add constructor name (same as class name)
 					if (rcd.getName() != null && rcd.getName().toLowerCase().startsWith(currentWord.toLowerCase())) {
 						proposals.add(new CompletionProposal(rcd.getName(), 
 							offset - currentWord.length(), currentWord.length(), rcd.getName().length()));
 					}
 					
-					// Add class names for instantiation (only if we're in appropriate context)
 					if (isInInstantiationContext(currentWord)) {
 						addClassNames(rebecaModel, currentWord, offset, proposals);
 					}
@@ -397,8 +372,6 @@ public class CompletionProcessor implements IContentAssistProcessor {
 	}
 	
 	private boolean isInInstantiationContext(String currentWord) {
-		// Simple heuristic: if the current word starts with uppercase, it might be a class instantiation
-		// In Rebeca, class names typically start with uppercase (Node, Customer, Agent, etc.)
 		return currentWord.length() > 0 && Character.isUpperCase(currentWord.charAt(0));
 	}
 	

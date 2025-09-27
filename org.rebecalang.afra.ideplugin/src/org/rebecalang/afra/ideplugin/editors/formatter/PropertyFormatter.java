@@ -4,9 +4,6 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
-/**
- * Formatter for Property (.property) files that correctly handles comments
- */
 public class PropertyFormatter implements IAfraFormatter {
     
     @Override

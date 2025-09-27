@@ -15,8 +15,7 @@ public class RebecaPropCompletionProcessor implements IContentAssistProcessor {
 	
 	private RebecaPropEditor editor;
 	
-	// Keywords from RebecaPropScanner
-	private static String[] keywords = {
+	private static final String[] keywords = {
 		"define", "CTL", "LTL", "property", "true", "false", "Assertion"
 	};
 	
@@ -63,18 +62,15 @@ public class RebecaPropCompletionProcessor implements IContentAssistProcessor {
 		try {
 			IDocument document = viewer.getDocument();
 			
-			// Safety check for offset
 			if (offset <= 0 || offset > document.getLength()) {
 				return new ICompletionProposal[0];
 			}
 			
-			// Get current word being typed
 			String currentWord = getCurrentWord(document, offset);
 			if (currentWord == null) {
 				currentWord = "";
 			}
 			
-			// Add keyword completions
 			for (String keyword : keywords) {
 				if (keyword.toLowerCase().startsWith(currentWord.toLowerCase())) {
 					proposals.add(new CompletionProposal(keyword, offset - currentWord.length(), 
@@ -85,7 +81,6 @@ public class RebecaPropCompletionProcessor implements IContentAssistProcessor {
 			return proposals.toArray(new ICompletionProposal[proposals.size()]);
 			
 		} catch (Exception e) {
-			// Return empty array instead of null to prevent error sound
 			return new ICompletionProposal[0];
 		}
 	}

@@ -79,7 +79,6 @@ public class RebecaPropEditor extends TextEditor {
 		
 		annotationModel = viewer.getProjectionAnnotationModel();
 		
-		// Initialize real-time syntax checker
 		initializeRealTimeSyntaxChecker();
 		
     }
@@ -119,24 +118,15 @@ public class RebecaPropEditor extends TextEditor {
 	    	return viewer;
     }
     
-    /**
-     * Initialize real-time syntax checker for the current property file
-     */
+
     private void initializeRealTimeSyntaxChecker() {
         try {
-            System.out.println("RebecaPropEditor: Initializing real-time syntax checker...");
             
-            // Get the file being edited
             IFile file = (IFile) getEditorInput().getAdapter(IFile.class);
-            System.out.println("RebecaPropEditor: File: " + (file != null ? file.getName() : "null"));
             
             if (file != null && "property".equals(file.getFileExtension())) {
-                System.out.println("RebecaPropEditor: Creating PropertyRealTimeSyntaxChecker for " + file.getName());
                 syntaxChecker = new PropertyRealTimeSyntaxChecker(this, file);
                 syntaxChecker.startChecking(getDocument());
-                System.out.println("RebecaPropEditor: Real-time syntax checker initialized successfully");
-            } else {
-                System.out.println("RebecaPropEditor: Not a .property file, skipping syntax checker initialization");
             }
         } catch (Exception e) {
             System.err.println("RebecaPropEditor: Failed to initialize real-time syntax checker: " + e.getMessage());
@@ -146,7 +136,6 @@ public class RebecaPropEditor extends TextEditor {
     
     @Override
     public void dispose() {
-        // Clean up syntax checker
         if (syntaxChecker != null) {
             try {
                 syntaxChecker.stopChecking(getDocument());
@@ -157,7 +146,6 @@ public class RebecaPropEditor extends TextEditor {
             }
         }
         
-        // Clean up color manager
         if (colorManager != null) {
             colorManager.dispose();
         }

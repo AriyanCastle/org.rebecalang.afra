@@ -226,7 +226,6 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 			
 			String currentExpression = line.substring(currentStart, positionInLine);
 			
-			// Check for dot notation
 			int lastDotIndex = currentExpression.lastIndexOf('.');
 			if (lastDotIndex >= 0) {
 				context.isDotCompletion = true;
@@ -242,12 +241,9 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 		}
 	}
 	
-	/**
-	 * Parse regular context (non-define)
-	 */
+
 	private void parseRegularContext(IDocument document, int offset, PropCompletionContext context) {
 		try {
-			// Find the start of the current expression
 			int expressionStart = offset - 1;
 			while (expressionStart >= 0) {
 				char ch = document.getChar(expressionStart);
@@ -258,13 +254,11 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 			}
 			expressionStart++;
 			
-			// Extract the full expression up to the cursor
 			String fullExpression = "";
 			if (expressionStart < offset) {
 				fullExpression = document.get(expressionStart, offset - expressionStart);
 			}
 			
-			// Check if this is a dot completion
 			int lastDotIndex = fullExpression.lastIndexOf('.');
 			if (lastDotIndex >= 0) {
 				context.isDotCompletion = true;
@@ -288,41 +282,29 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 		ArrayList<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		
 		try {
-			System.out.println("RebecaPropContextAwareCompletionProcessor.computeCompletionProposals called with offset: " + offset);
 			
 			IDocument document = viewer.getDocument();
 			
-			// Safety check for offset
 			if (offset <= 0 || offset > document.getLength()) {
 				return new ICompletionProposal[0];
 			}
 			
-			// Get completion context
 			PropCompletionContext context = getCompletionContext(document, offset);
 			
-			System.out.println("Context - isDot: " + context.isDotCompletion + 
-					", object: '" + context.objectName + "', partial: '" + context.partialText + 
-					"', isDefine: " + context.isDefineContext + 
-					", replaceOffset: " + context.replacementOffset + 
-					", replaceLength: " + context.replacementLength);
 			
-			// Add basic keyword completions if not in specific contexts
 			if (!context.isDefineContext || !context.isDotCompletion) {
 				addFilteredKeywordCompletions(context.partialText, context.replacementOffset, 
 					context.replacementLength, proposals);
 			}
 			
-			// Add context-aware completions
 			if (context.isDefineContext) {
 				addDefineContextCompletions(document, context, proposals);
 			}
 			
-			// Add defined variables from the same file
-			if (!context.isDotCompletion) { // Don't add defined vars when completing object.field
+			if (!context.isDotCompletion) {
 				addDefinedVariables(document, context, proposals);
 			}
 			
-			System.out.println("Total completions: " + proposals.size());
 			return proposals.toArray(new ICompletionProposal[proposals.size()]);
 			
 		} catch (Exception e) {
@@ -332,9 +314,7 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 		}
 	}
 	
-	/**
-	 * Add keyword completions with filtering
-	 */
+
 	private void addFilteredKeywordCompletions(String partialText, int replacementOffset, int replacementLength,
 			ArrayList<ICompletionProposal> proposals) {
 		for (String keyword : keywords) {
@@ -352,27 +332,21 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 			ArrayList<ICompletionProposal> proposals) {
 		
 		if (context.isDotCompletion) {
-			// User typed "object." - suggest state variables from corresponding rebeca file
 			addCrossFileCompletions(context, proposals);
 		} else {
-			// User is typing object name - suggest class instances from main method
 			addMainMethodInstanceCompletions(context, proposals);
 		}
 	}
 	
-	/**
-	 * Add completions from corresponding .rebeca file
-	 */
+
 	private void addCrossFileCompletions(PropCompletionContext context, ArrayList<ICompletionProposal> proposals) {
 		try {
-			// Get the corresponding .rebeca file
 			String rebecaFilePath = getCorrespondingRebecaFile();
 			if (rebecaFilePath == null) return;
 			
 			File rebecaFile = new File(rebecaFilePath);
 			if (!rebecaFile.exists()) return;
 			
-			// Compile the rebeca file to get model
 			RebecaModel rebecaModel = compileRebecaFile(rebecaFile);
 			if (rebecaModel == null) return;
 			
@@ -393,18 +367,15 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 	 */
 	private void addMainMethodInstanceCompletions(PropCompletionContext context, ArrayList<ICompletionProposal> proposals) {
 		try {
-			// Get the corresponding .rebeca file
 			String rebecaFilePath = getCorrespondingRebecaFile();
 			if (rebecaFilePath == null) return;
 			
 			File rebecaFile = new File(rebecaFilePath);
 			if (!rebecaFile.exists()) return;
 			
-			// Compile the rebeca file to get model
 			RebecaModel rebecaModel = compileRebecaFile(rebecaFile);
 			if (rebecaModel == null) return;
 			
-			// Get instances from main method
 			if (rebecaModel.getRebecaCode().getMainDeclaration() != null &&
 				rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition() != null) {
 				
@@ -424,16 +395,13 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 		}
 	}
 	
-	/**
-	 * Get the path of the corresponding .rebeca file
-	 */
+
 	private String getCorrespondingRebecaFile() {
 		try {
 			if (editor.getEditorInput() != null) {
 				String propertyPath = editor.getEditorInput().getName();
 				if (propertyPath.endsWith(".property")) {
 					String baseName = propertyPath.substring(0, propertyPath.lastIndexOf(".property"));
-					// Get the directory of the current file
 					String directory = "";
 					if (editor.getEditorInput() instanceof org.eclipse.ui.part.FileEditorInput) {
 						org.eclipse.ui.part.FileEditorInput fileInput = (org.eclipse.ui.part.FileEditorInput) editor.getEditorInput();
@@ -448,9 +416,7 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 		return null;
 	}
 	
-	/**
-	 * Compile a rebeca file and return the model
-	 */
+
 	private RebecaModel compileRebecaFile(File rebecaFile) {
 		try {
 			IProject project = CompilationAndCodeGenerationProcess.getProject();
@@ -472,9 +438,7 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 		}
 	}
 	
-	/**
-	 * Find the type of an object in the main method
-	 */
+
 	private Type findObjectTypeInMain(RebecaModel rebecaModel, String objectName) {
 		if (rebecaModel.getRebecaCode().getMainDeclaration() != null &&
 			rebecaModel.getRebecaCode().getMainDeclaration().getMainRebecDefinition() != null) {
@@ -488,16 +452,13 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 		return null;
 	}
 	
-	/**
-	 * Add state variables from a reactive class
-	 */
+
 	private void addStateVariablesFromClass(RebecaModel rebecaModel, Type classType, PropCompletionContext context,
 			ArrayList<ICompletionProposal> proposals) {
 		
 		if (rebecaModel.getRebecaCode().getReactiveClassDeclaration() != null) {
 			for (ReactiveClassDeclaration rcd : rebecaModel.getRebecaCode().getReactiveClassDeclaration()) {
 				if (classType.getTypeName().equals(rcd.getName())) {
-					// Add state variables
 					if (rcd.getStatevars() != null) {
 						for (FieldDeclaration fd : rcd.getStatevars()) {
 							if (fd.getVariableDeclarators() != null) {
@@ -519,20 +480,18 @@ public class RebecaPropContextAwareCompletionProcessor implements IContentAssist
 		}
 	}
 	
-	/**
-	 * Add defined variables from the current property file
-	 */
+
 	private void addDefinedVariables(IDocument document, PropCompletionContext context, 
 			ArrayList<ICompletionProposal> proposals) {
 		
 		if (context.isDefineContext && context.isDotCompletion) {
-			return; // Don't suggest defined vars when completing object.field
+			return;
 		}
 		
 		try {
 			String documentContent = document.get();
 			
-			// Pattern to match define statements: variableName = ...;
+			// match define statements: variableName = ...;
 			Pattern definePattern = Pattern.compile("\\s*(\\w+)\\s*=\\s*[^;]+;", Pattern.MULTILINE);
 			Matcher matcher = definePattern.matcher(documentContent);
 			
