@@ -262,20 +262,16 @@ public class RebecaRefactoringParticipant {
 		}
 
 		// Pattern for class usage in knownrebecs: ClassName varName1, varName2, ...;
-		// Restrict search to inside the knownrebecs section and compute absolute
-		// offsets correctly
-		String knownrebecsBody = getKnownrebecssection(content);
-		if (!knownrebecsBody.isEmpty()) {
-			int knownrebecsBodyOffset = findKnownrebecsOffset(content);
-			
-			// Debug: Print knownrebecs content and pattern
-			System.out.println("[DEBUG] Knownrebecs body: '" + knownrebecsBody + "'");
-			System.out.println("[DEBUG] Looking for class: '" + className + "'");
-			System.out.println("[DEBUG] Knownrebecs offset: " + knownrebecsBodyOffset);
+		// Iterate over all knownrebecs blocks
+		Pattern allKnownrebecsPattern = Pattern.compile("knownrebecs\\s*\\{([^}]*)\\}", Pattern.DOTALL);
+		Matcher allKnownrebecsMatcher = allKnownrebecsPattern.matcher(content);
+		while (allKnownrebecsMatcher.find()) {
+			String knownrebecsBody = allKnownrebecsMatcher.group(1);
+			int knownrebecsBodyOffset = allKnownrebecsMatcher.start(1);
 			
 			// Pattern for class names in knownrebecs: should match ClassName at the beginning of a line or after whitespace
 			// Pattern: (start_of_line or whitespace)(ClassName)(whitespace)(instance_names);
-			Pattern knownrebecsClassPattern = Pattern.compile("(?:^|\\s+)(" + Pattern.quote(className) + ")\\s+[\\w\\s,]+;",
+			Pattern knownrebecsClassPattern = Pattern.compile("(?:^|\\s)(" + Pattern.quote(className) + ")\\s+[\\w\\s,]+;",
 					Pattern.MULTILINE);
 			Matcher knownrebecsMatcher = knownrebecsClassPattern.matcher(knownrebecsBody);
 			while (knownrebecsMatcher.find()) {
@@ -287,29 +283,32 @@ public class RebecaRefactoringParticipant {
 			}
 			
 			// If the above pattern didn't find anything, try a simpler approach
-			if (knownrebecsBody.contains(className)) {
+			if (!knownrebecsBody.contains(className)) continue;
+			
+			boolean foundWithComplexPattern = false;
+			knownrebecsMatcher.reset();
+			if(knownrebecsMatcher.find()) foundWithComplexPattern = true;
+
+			if (!foundWithComplexPattern) {
 				System.out.println("[DEBUG] Class '" + className + "' exists in knownrebecs body, but pattern didn't match");
 				System.out.println("[DEBUG] Trying simpler pattern...");
-
+				
 				// Simple word boundary search within knownrebecs
 				Pattern simplePattern = Pattern.compile("\\b(" + Pattern.quote(className) + ")\\b");
 				Matcher simpleMatcher = simplePattern.matcher(knownrebecsBody);
 				while (simpleMatcher.find()) {
 					int relativeOffset = simpleMatcher.start(1);
 					int absoluteOffset = knownrebecsBodyOffset + relativeOffset;
-
+					
 					// Check if this looks like a class declaration by checking what comes after
 					String afterClass = knownrebecsBody.substring(simpleMatcher.end());
-					// More permissive check - just need whitespace and then variable names ending with semicolon
-					if (afterClass.matches("\\s+[\\w\\s,]*;.*")) {
+					if (afterClass.matches("\\s+[\\w\\s,]+;.*")) {
 						System.out.println("[DEBUG] Found class '" + className + "' with simple pattern at relative offset: " + relativeOffset + ", absolute: " + absoluteOffset);
 						occurrences.add(new SymbolOccurrence(file, absoluteOffset, className.length(), className,
 								SymbolType.CLASS_NAME, new SymbolContext(null, null, false)));
 					}
 				}
 			}
-		} else {
-			System.out.println("[DEBUG] Knownrebecs body is empty for class: " + className);
 		}
 
 		return occurrences;
@@ -349,19 +348,26 @@ public class RebecaRefactoringParticipant {
 		List<SymbolOccurrence> occurrences = new ArrayList<>();
 
 		// Pattern for variable declarations in statevars
-		Pattern statevarPattern = Pattern.compile("\\b\\w+\\s+([^;,=]+)");
-		Matcher statevarMatcher = statevarPattern.matcher(getStatevarsSection(content));
-		while (statevarMatcher.find()) {
-			String vars = statevarMatcher.group(1);
-			String[] varNames = vars.split("\\s*,\\s*");
-			for (String varName : varNames) {
-				varName = varName.trim();
-				if (varName.equals(variableName)) {
-					// Find offset in original content
-					int relativeOffset = statevarMatcher.start(1) + vars.indexOf(varName);
-					int absoluteOffset = findStatevarsOffset(content) + relativeOffset;
-					occurrences.add(new SymbolOccurrence(file, absoluteOffset, variableName.length(), variableName,
-							SymbolType.VARIABLE_NAME, new SymbolContext(null, null, true)));
+		Pattern allStatevarsPattern = Pattern.compile("statevars\\s*\\{([^}]*)\\}", Pattern.DOTALL);
+		Matcher allStatevarsMatcher = allStatevarsPattern.matcher(content);
+		while (allStatevarsMatcher.find()) {
+			String statevarsBody = allStatevarsMatcher.group(1);
+			int statevarsBodyOffset = allStatevarsMatcher.start(1);
+
+			Pattern statevarPattern = Pattern.compile("\\b\\w+\\s+([^;,=]+)");
+			Matcher statevarMatcher = statevarPattern.matcher(statevarsBody);
+			while (statevarMatcher.find()) {
+				String vars = statevarMatcher.group(1);
+				String[] varNames = vars.split("\\s*,\\s*");
+				for (String varName : varNames) {
+					varName = varName.trim();
+					if (varName.equals(variableName)) {
+						// Find offset in original content
+						int relativeOffset = statevarMatcher.start(1) + vars.indexOf(varName);
+						int absoluteOffset = statevarsBodyOffset + relativeOffset;
+						occurrences.add(new SymbolOccurrence(file, absoluteOffset, variableName.length(), variableName,
+								SymbolType.VARIABLE_NAME, new SymbolContext(null, null, true)));
+					}
 				}
 			}
 		}
@@ -388,19 +394,25 @@ public class RebecaRefactoringParticipant {
 		List<SymbolOccurrence> occurrences = new ArrayList<>();
 
 		// Pattern for instance declarations in knownrebecs
-		Pattern knownrebecPattern = Pattern.compile("\\w+\\s+([^;,]+)");
-		Matcher knownrebecMatcher = knownrebecPattern.matcher(getKnownrebecssection(content));
-		while (knownrebecMatcher.find()) {
-			String instances = knownrebecMatcher.group(1);
-			String[] instanceNames = instances.split("\\s*,\\s*");
-			for (String instName : instanceNames) {
-				instName = instName.trim();
-				if (instName.equals(instanceName)) {
-					// Find offset in original content
-					int relativeOffset = knownrebecMatcher.start(1) + instances.indexOf(instName);
-					int absoluteOffset = findKnownrebecsOffset(content) + relativeOffset;
-					occurrences.add(new SymbolOccurrence(file, absoluteOffset, instanceName.length(), instanceName,
-							SymbolType.INSTANCE_NAME, new SymbolContext(null, null, true)));
+		Pattern allKnownrebecsPattern = Pattern.compile("knownrebecs\\s*\\{([^}]*)\\}", Pattern.DOTALL);
+		Matcher allKnownrebecsMatcher = allKnownrebecsPattern.matcher(content);
+		while (allKnownrebecsMatcher.find()) {
+			String knownrebecsBody = allKnownrebecsMatcher.group(1);
+			int knownrebecsBodyOffset = allKnownrebecsMatcher.start(1);
+			Pattern knownrebecPattern = Pattern.compile("\\w+\\s+([^;,]+)");
+			Matcher knownrebecMatcher = knownrebecPattern.matcher(knownrebecsBody);
+			while (knownrebecMatcher.find()) {
+				String instances = knownrebecMatcher.group(1);
+				String[] instanceNames = instances.split("\\s*,\\s*");
+				for (String instName : instanceNames) {
+					instName = instName.trim();
+					if (instName.equals(instanceName)) {
+						// Find offset in original content
+						int relativeOffset = knownrebecMatcher.start(1) + instances.indexOf(instName);
+						int absoluteOffset = knownrebecsBodyOffset + relativeOffset;
+						occurrences.add(new SymbolOccurrence(file, absoluteOffset, instanceName.length(), instanceName,
+								SymbolType.INSTANCE_NAME, new SymbolContext(null, null, true)));
+					}
 				}
 			}
 		}
@@ -416,20 +428,16 @@ public class RebecaRefactoringParticipant {
 					SymbolType.INSTANCE_NAME, new SymbolContext(null, null, true)));
 		}
 
-	// Pattern for instance usage: instanceName.method() or standalone instanceName
-	Pattern instanceUsagePattern = Pattern.compile("\\b(" + Pattern.quote(instanceName) + ")(?:\\.|\\b)");
-	Matcher matcher = instanceUsagePattern.matcher(content);
-	System.out.println("[DEBUG] Instance usage pattern: " + instanceUsagePattern.pattern());
-	System.out.println("[DEBUG] Searching in content: " + content);
-	while (matcher.find()) {
-		int offset = matcher.start(1);
-		System.out.println("[DEBUG] Found potential instance usage at offset " + offset + ": '" + content.substring(Math.max(0, offset-5), Math.min(content.length(), offset + instanceName.length() + 5)) + "'");
-		if (!isInDeclarationContext(content, offset)) {
-			System.out.println("[DEBUG] Adding instance occurrence at offset " + offset);
-			occurrences.add(new SymbolOccurrence(file, offset, instanceName.length(), instanceName,
-					SymbolType.INSTANCE_NAME, new SymbolContext(null, null, false)));
+		// Pattern for instance usage: instanceName.method() or standalone instanceName
+		Pattern instanceUsagePattern = Pattern.compile("\\b(" + Pattern.quote(instanceName) + ")(?:\\.|\\b)");
+		Matcher matcher = instanceUsagePattern.matcher(content);
+		while (matcher.find()) {
+			int offset = matcher.start(1);
+			if (!isInDeclarationContext(content, offset)) {
+				occurrences.add(new SymbolOccurrence(file, offset, instanceName.length(), instanceName,
+						SymbolType.INSTANCE_NAME, new SymbolContext(null, null, false)));
+			}
 		}
-	}
 
 		return occurrences;
 	}
@@ -514,17 +522,14 @@ public class RebecaRefactoringParticipant {
 	private List<SymbolOccurrence> findInstanceReferencesInProperty(IFile file, String content, String instanceName) {
 		List<SymbolOccurrence> occurrences = new ArrayList<>();
 
-	// Pattern for instance.field references
-	Pattern instanceRefPattern = Pattern.compile("\\b(" + Pattern.quote(instanceName) + ")\\.");
-	Matcher matcher = instanceRefPattern.matcher(content);
-	System.out.println("[DEBUG] Property file instance pattern: " + instanceRefPattern.pattern());
-	System.out.println("[DEBUG] Searching property content: " + content);
-	while (matcher.find()) {
-		int offset = matcher.start(1);
-		System.out.println("[DEBUG] Found instance reference in property at offset " + offset + ": '" + content.substring(Math.max(0, offset-5), Math.min(content.length(), offset + instanceName.length() + 5)) + "'");
-		occurrences.add(new SymbolOccurrence(file, offset, instanceName.length(), instanceName,
-				SymbolType.INSTANCE_NAME, new SymbolContext(null, null, false)));
-	}
+		// Pattern for instance.field references
+		Pattern instanceRefPattern = Pattern.compile("\\b(" + Pattern.quote(instanceName) + ")\\.");
+		Matcher matcher = instanceRefPattern.matcher(content);
+		while (matcher.find()) {
+			int offset = matcher.start(1);
+			occurrences.add(new SymbolOccurrence(file, offset, instanceName.length(), instanceName,
+					SymbolType.INSTANCE_NAME, new SymbolContext(null, null, false)));
+		}
 
 		return occurrences;
 	}

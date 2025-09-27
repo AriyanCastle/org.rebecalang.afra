@@ -688,6 +688,9 @@ public class RebecaRenameAction extends AbstractHandler {
                     System.out.println("[RebecaRename DEBUG] Detected as INSTANCE_NAME (parameter reference) in main");
                     return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
                 }
+                
+                // Fallback for main section: any other identifier is likely an instance name
+                return RebecaRefactoringParticipant.SymbolType.INSTANCE_NAME;
             }
             
             // Check if it's in statevars section (variable declaration)
