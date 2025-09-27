@@ -4,14 +4,19 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
+import org.eclipse.jface.text.formatter.ContentFormatter;
+import org.eclipse.jface.text.formatter.IContentFormatter;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.rebecalang.afra.ideplugin.editors.ColorManager;
 import org.rebecalang.afra.ideplugin.editors.GeneralSourceViewerConfiguration;
 import org.rebecalang.afra.ideplugin.editors.GeneralTextAttribute;
+import org.rebecalang.afra.ideplugin.editors.formatter.RebecaFormatter;
+import org.rebecalang.afra.ideplugin.editors.formatter.FullDocumentContentFormatter;
 import org.eclipse.jface.text.reconciler.IReconciler;
 import org.eclipse.jface.text.reconciler.MonoReconciler;
+import org.eclipse.jface.text.ITextHover;
 
 
 public class RebecaSourceViewerConfiguration extends GeneralSourceViewerConfiguration {
@@ -49,16 +54,30 @@ public class RebecaSourceViewerConfiguration extends GeneralSourceViewerConfigur
 		return scanner;
 	}
 	
+	@Override
 	public IContentAssistant getContentAssistant(ISourceViewer sv) {
 		ContentAssistant contentAssist = new ContentAssistant();
-		IContentAssistProcessor cap = new CompletionProcessor(this.editor);
+		IContentAssistProcessor cap = new RebecaContextAwareCompletionProcessor(this.editor);
 		contentAssist.setContentAssistProcessor(cap, IDocument.DEFAULT_CONTENT_TYPE);
+		
+		// Configure content assist behavior
 		contentAssist.enableAutoActivation(true);
+		contentAssist.setAutoActivationDelay(100); // Quick activation
 		contentAssist.enableColoredLabels(true);
-		contentAssist.enableAutoInsert(true);
+		contentAssist.enableAutoInsert(false); // Don't auto-insert, let user choose
+		contentAssist.setProposalSelectorBackground(sv.getTextWidget().getDisplay().getSystemColor(org.eclipse.swt.SWT.COLOR_INFO_BACKGROUND));
+		contentAssist.setProposalSelectorForeground(sv.getTextWidget().getDisplay().getSystemColor(org.eclipse.swt.SWT.COLOR_INFO_FOREGROUND));
 		contentAssist.setInformationControlCreator(getInformationControlCreator(sv));
+		
 		return contentAssist;
    }
+
+   @Override
+   public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {
+       RebecaFormatter rebecaFormatter = new RebecaFormatter();
+       return new FullDocumentContentFormatter(rebecaFormatter);
+   }
+
    public IReconciler getReconciler(ISourceViewer sourceViewer)
     {
         RebecaReconcilingStrategy strategy = new RebecaReconcilingStrategy();
@@ -67,6 +86,14 @@ public class RebecaSourceViewerConfiguration extends GeneralSourceViewerConfigur
         MonoReconciler reconciler = new MonoReconciler(strategy,false);
         
         return reconciler;
+    }
+
+    @Override
+    public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
+        if (IDocument.DEFAULT_CONTENT_TYPE.equals(contentType)) {
+            return new RebecaTextHover(this.editor);
+        }
+        return super.getTextHover(sourceViewer, contentType);
     }
 	
 }

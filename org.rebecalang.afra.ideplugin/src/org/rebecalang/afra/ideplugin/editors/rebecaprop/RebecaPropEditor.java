@@ -17,6 +17,7 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.swt.widgets.Control;
 import org.rebecalang.afra.ideplugin.editors.WordHighlightManager;
 import org.rebecalang.afra.ideplugin.editors.WordHighlightingUtil;
@@ -27,6 +28,9 @@ public class RebecaPropEditor extends TextEditor {
 
 	private ColorManager colorManager;
 	private ProjectionSupport projectionSupport;
+
+	private PropertyRealTimeSyntaxChecker syntaxChecker;
+
 	private WordHighlightManager wordHighlightManager;
 
 	public static RebecaPropEditor current() {
@@ -56,6 +60,20 @@ public class RebecaPropEditor extends TextEditor {
 	public ColorManager getColorManager() {
 		return colorManager;
 	}
+	
+	/**
+	 * Public accessor for the source viewer (exposes protected method)
+	 */
+	public ISourceViewer getPublicSourceViewer() {
+		return getSourceViewer();
+	}
+	
+	/**
+	 * Public accessor for the source viewer configuration (exposes protected method)
+	 */
+	public RebecaPropSourceViewerConfiguration getPublicSourceViewerConfiguration() {
+		return (RebecaPropSourceViewerConfiguration) getSourceViewerConfiguration();
+	}
 
 	public void createPartControl(Composite parent)
     {
@@ -69,8 +87,12 @@ public class RebecaPropEditor extends TextEditor {
 		
 		annotationModel = viewer.getProjectionAnnotationModel();
 		
+
+		initializeRealTimeSyntaxChecker();
+
 		wordHighlightManager = new WordHighlightManager(viewer, WordHighlightingUtil.FileType.PROPERTY);
 		setupWordHighlighting(viewer);
+
 		
     }
 	private Annotation[] oldAnnotations;
@@ -106,8 +128,26 @@ public class RebecaPropEditor extends TextEditor {
     	// ensure decoration support has been created and configured.
     	getSourceViewerDecorationSupport(viewer);
     	
-    	return viewer;
+	    	return viewer;
     }
+    
+
+    private void initializeRealTimeSyntaxChecker() {
+        try {
+            
+            IFile file = (IFile) getEditorInput().getAdapter(IFile.class);
+            
+            if (file != null && "property".equals(file.getFileExtension())) {
+                syntaxChecker = new PropertyRealTimeSyntaxChecker(this, file);
+                syntaxChecker.startChecking(getDocument());
+            }
+        } catch (Exception e) {
+            System.err.println("RebecaPropEditor: Failed to initialize real-time syntax checker: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+
     
     /**
      * Sets up word highlighting functionality by adding mouse listeners to the text widget.
@@ -173,6 +213,20 @@ public class RebecaPropEditor extends TextEditor {
     		wordHighlightManager.dispose();
     		wordHighlightManager = null;
     	}
+		 if (syntaxChecker != null) {
+            try {
+                syntaxChecker.stopChecking(getDocument());
+                syntaxChecker.dispose();
+                syntaxChecker = null;
+            } catch (Exception e) {
+                System.err.println("Error disposing syntax checker: " + e.getMessage());
+            }
+        }
+        
+        if (colorManager != null) {
+            colorManager.dispose();
+        }
     	super.dispose();
     }
 }
+

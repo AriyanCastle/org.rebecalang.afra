@@ -18,6 +18,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.core.resources.IFile;
 import org.rebecalang.afra.ideplugin.editors.ColorManager;
 import org.rebecalang.afra.ideplugin.editors.WordHighlightManager;
 import org.rebecalang.afra.ideplugin.editors.WordHighlightingUtil;
@@ -28,6 +29,8 @@ public class RebecaEditor extends TextEditor {
 
 	private ColorManager colorManager;
 	private ProjectionSupport projectionSupport;
+	private RealTimeSyntaxChecker syntaxChecker;
+
 	private WordHighlightManager wordHighlightManager;
 
 	public static RebecaEditor current() {
@@ -58,6 +61,20 @@ public class RebecaEditor extends TextEditor {
 		return colorManager;
 	}
 	
+	/**
+	 * Public accessor for the source viewer (exposes protected method)
+	 */
+	public ISourceViewer getPublicSourceViewer() {
+		return getSourceViewer();
+	}
+	
+	/**
+	 * Public accessor for the source viewer configuration (exposes protected method)
+	 */
+	public RebecaSourceViewerConfiguration getPublicSourceViewerConfiguration() {
+		return (RebecaSourceViewerConfiguration) getSourceViewerConfiguration();
+	}
+	
     /* (non-Javadoc)
      * @see org.eclipse.ui.IWorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
      */
@@ -73,6 +90,16 @@ public class RebecaEditor extends TextEditor {
 		
 		annotationModel = viewer.getProjectionAnnotationModel();
 		
+
+		initializeRealTimeSyntaxChecker();
+		
+//		Iterator<Annotation> annotationIterator = annotationModel.getAnnotationIterator();
+//		while(annotationIterator.hasNext()) {
+//			Annotation a = annotationIterator.next();
+//			String text = a.getText();
+//			System.out.println(text);
+//		}
+
 		wordHighlightManager = new WordHighlightManager(viewer, WordHighlightingUtil.FileType.REBECA);
 		setupWordHighlighting(viewer);
 		
@@ -114,8 +141,28 @@ public class RebecaEditor extends TextEditor {
     }
     
     /**
-     * Sets up word highlighting functionality by adding mouse listeners to the text widget.
+     * Initialize real-time syntax checker for the current file
      */
+    private void initializeRealTimeSyntaxChecker() {
+        try {
+            
+            IFile file = (IFile) getEditorInput().getAdapter(IFile.class);
+            System.out.println("RebecaEditor: File: " + (file != null ? file.getName() : "null"));
+            
+            if (file != null && "rebeca".equals(file.getFileExtension())) {
+                syntaxChecker = new RealTimeSyntaxChecker(this, file);
+                syntaxChecker.startChecking(getDocument());
+            } else {
+                System.out.println("RebecaEditor: Not a .rebeca file, skipping syntax checker initialization");
+            }
+        } catch (Exception e) {
+            System.err.println("RebecaEditor: Failed to initialize real-time syntax checker: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+
+ 
     private void setupWordHighlighting(ISourceViewer viewer) {
     	if (viewer != null && viewer.getTextWidget() != null) {
     		Control textWidget = viewer.getTextWidget();
@@ -177,6 +224,21 @@ public class RebecaEditor extends TextEditor {
     		wordHighlightManager.dispose();
     		wordHighlightManager = null;
     	}
+       if (syntaxChecker != null) {
+            try {
+                syntaxChecker.stopChecking(getDocument());
+                syntaxChecker.dispose();
+                syntaxChecker = null;
+            } catch (Exception e) {
+                System.err.println("Error disposing syntax checker: " + e.getMessage());
+            }
+        }
+        
+        if (colorManager != null) {
+            colorManager.dispose();
+        }
+        
+
     	super.dispose();
     }
 }
